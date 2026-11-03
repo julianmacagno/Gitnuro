@@ -12,9 +12,6 @@ If you don't have another preference, the recommendation is to download and inst
 (possibly through the JetBrains Toolbox, if you have it already). The recommended plugins to improve the DX are:
 
 - [Compose Multiplatform IDE Support](https://plugins.jetbrains.com/plugin/16541-compose-multiplatform-ide-support)
-- [Rust Plugin](https://plugins.jetbrains.com/plugin/8182-rust) (deprecated due
-  to [RustRover IDE](https://blog.jetbrains.com/rust/2023/09/13/introducing-rustrover-a-standalone-rust-ide-by-jetbrains/)
-  but still works).
 
 By default, the JDK used by "IntelliJ IDEA Community Edition (2023.1.3)" is "JetBrains Runtime version 21" which is not
 currently supported by the project.

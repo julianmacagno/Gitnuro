@@ -112,123 +112,6 @@
       ]
     },
     {
-      "type": "com.jetpackduba.gitnuro.RustBuffer",
-      "fields": [
-        {
-          "name": "capacity"
-        },
-        {
-          "name": "data"
-        },
-        {
-          "name": "len"
-        }
-      ]
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.RustBuffer$ByValue",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiCallbackInterfaceClone"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiCallbackInterfaceFree"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiCallbackInterfaceWatchDirectoryNotifierMethod0",
-      "methods": [
-        {
-          "name": "callback",
-          "parameterTypes": [
-            "long",
-            "com.sun.jna.ptr.ByteByReference",
-            "com.jetpackduba.gitnuro.UniffiRustCallStatus"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiCallbackInterfaceWatchDirectoryNotifierMethod1",
-      "methods": [
-        {
-          "name": "callback",
-          "parameterTypes": [
-            "long",
-            "com.jetpackduba.gitnuro.RustBuffer$ByValue",
-            "com.sun.jna.Pointer",
-            "com.jetpackduba.gitnuro.UniffiRustCallStatus"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiCallbackInterfaceWatchDirectoryNotifierMethod2"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiLib"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiRustCallStatus",
-      "fields": [
-        {
-          "name": "code"
-        },
-        {
-          "name": "error_buf"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiVTableCallbackInterfaceWatchDirectoryNotifier",
-      "fields": [
-        {
-          "name": "detectedChange"
-        },
-        {
-          "name": "onError"
-        },
-        {
-          "name": "shouldKeepLooping"
-        },
-        {
-          "name": "uniffiClone"
-        },
-        {
-          "name": "uniffiFree"
-        }
-      ]
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.UniffiVTableCallbackInterfaceWatchDirectoryNotifier$UniffiByValue"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.uniffiCallbackInterfaceWatchDirectoryNotifier$detectedChange"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.uniffiCallbackInterfaceWatchDirectoryNotifier$onError"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.uniffiCallbackInterfaceWatchDirectoryNotifier$shouldKeepLooping"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.uniffiCallbackInterfaceWatchDirectoryNotifier$uniffiClone"
-    },
-    {
-      "type": "com.jetpackduba.gitnuro.uniffiCallbackInterfaceWatchDirectoryNotifier$uniffiFree"
-    },
-    {
       "type": "com.sun.crypto.provider.AESCipher$General",
       "methods": [
         {
@@ -7802,13 +7685,7 @@
       "glob": "fonts/NotoSansMono/NotoSansMono-Regular.ttf"
     },
     {
-      "glob": "libgitnuro_rs.so"
-    },
-    {
       "glob": "libskiko-linux-x64.so.sha256"
-    },
-    {
-      "glob": "linux-x86-64/libgitnuro_rs.so"
     },
     {
       "glob": "log4j.properties"

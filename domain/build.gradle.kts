@@ -20,7 +20,6 @@ dependencies {
 
     implementation(libs.coroutines)
 
-    implementation(libs.jna)
 
     // TODO This should be removed after refactor is finished
     implementation(libs.jgit.core)
