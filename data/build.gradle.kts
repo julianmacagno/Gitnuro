@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.jgit.core)
     implementation(libs.jgit.gpg)
     implementation(libs.jgit.lfs)
+    implementation(libs.jgit.ssh.apache)
 
     implementation(libs.coroutines)
 

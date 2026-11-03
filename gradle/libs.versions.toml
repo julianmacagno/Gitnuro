@@ -31,6 +31,7 @@ compose-navigation3 = { group = "org.jetbrains.androidx.navigation3", name = "na
 
 jgit-core = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 jgit-gpg = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.gpg.bc", version.ref = "jgit" }
+jgit-ssh-apache = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.ssh.apache", version.ref = "jgit" }
 jgit-lfs = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.lfs", version.ref = "jgit" }
 
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
