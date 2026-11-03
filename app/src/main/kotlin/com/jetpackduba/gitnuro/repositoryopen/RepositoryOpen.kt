@@ -124,11 +124,7 @@ fun RepositoryOpenPage(
                     onStashWithMessage = { onNavigate(Screen.StashWithMessage) },
                     onOpenAnotherRepository = { onOpenAnotherRepository(it) },
                     onOpenAnotherRepositoryFromPicker = {
-                        val repoToOpen = repositoryOpenViewModel.openDirectoryPicker()
-
-                        if (repoToOpen != null) {
-                            onOpenAnotherRepository(repoToOpen)
-                        }
+                        repositoryOpenViewModel.openRepositoriesFromPicker(onOpenAnotherRepository)
                     },
                     onQuickActions = { onNavigate(Screen.QuickActions) },
                     onShowSettingsDialog = { onNavigate(Screen.GlobalSettings) },
