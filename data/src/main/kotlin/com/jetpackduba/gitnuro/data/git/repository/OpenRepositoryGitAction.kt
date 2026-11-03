@@ -37,8 +37,9 @@ class OpenRepositoryGitAction @Inject constructor() : IOpenRepositoryGitAction {
             openRepository(directory)
         }
 
-        if (repository == null) {
-            printError(TAG, "Can't open git repo, specified path is not a directory")
+        if (repository == null || !repository.objectDatabase.exists()) {
+            repository?.close()
+            printError(TAG, "Can't open git repo, no repository found in the specified path")
             return Either.Err(OpenRepoError.RepositoryNotFoundInPath)
         }
 

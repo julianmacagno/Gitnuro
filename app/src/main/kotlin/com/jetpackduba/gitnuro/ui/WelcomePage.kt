@@ -70,11 +70,7 @@ fun WelcomePage(
         onShowCloneDialog = onShowCloneDialog,
         onShowSettings = onShowSettings,
         onOpenRepository = {
-            val repo = repositoryTabViewModel.openDirectoryPicker()
-
-            if (repo != null) {
-                repositoryTabViewModel.openRepository(repo)
-            }
+            repositoryTabViewModel.openRepositoriesFromPicker()
         },
         onStartRepository = {
             val dir = repositoryTabViewModel.openDirectoryPicker()
@@ -83,7 +79,7 @@ fun WelcomePage(
                 repositoryTabViewModel.initLocalRepository(dir)
             }
         },
-        onOpenKnownRepository = { repositoryTabViewModel.openRepository(it) },
+        onOpenKnownRepository = { repositoryTabViewModel.openRepositoryOrSelectExisting(it) },
         onOpenUrlInBrowser = { repositoryTabViewModel.openUrlInBrowser(it) },
         onRemoveRepositoryFromRecent = { repositoryTabViewModel.removeRepositoryFromRecent(it) },
         onShowAppInfo = onShowAppInfo,

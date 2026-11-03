@@ -3,6 +3,7 @@ package com.jetpackduba.gitnuro.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jetpackduba.gitnuro.di.TabComponent
+import com.jetpackduba.gitnuro.domain.extensions.removeGitSuffix
 import com.jetpackduba.gitnuro.domain.repositories.GlobalSettingsRepository
 import com.jetpackduba.gitnuro.domain.repositories.TabsOpenRepository
 import com.jetpackduba.gitnuro.domain.usecases.CleanRepositoriesResourcesUseCase
@@ -62,7 +63,24 @@ class AppViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Tab of the active group that already has [path] open.
+     * ponytail: plain string compare, symlinked paths to the same repo are not detected.
+     */
+    fun findOpenTab(path: String): TabInformation<RepositoryTabViewModel>? {
+        val normalizedPath = path.removeGitSuffix()
+
+        return tabs.value.firstOrNull { it.data.repositoryPath.value == normalizedPath }
+    }
+
     suspend fun addNewTabFromPath(path: String, selectTab: Boolean, tabToBeReplacedPath: RepositoryTabViewModel? = null) {
+        val openTab = findOpenTab(path)
+
+        if (openTab != null) {
+            if (selectTab) selectTab(openTab)
+            return
+        }
+
         val tabToBeReplaced = tabs
             .value
             .firstOrNull {
