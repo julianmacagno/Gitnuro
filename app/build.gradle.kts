@@ -164,14 +164,19 @@ compose.desktop {
 }
 
 
-tasks.register("fatJarLinux", type = Jar::class) {
-    val archSuffix = if (isLinuxAarch64) {
-        "arm_aarch64"
-    } else {
-        "x86_64"
-    }
+// Compose's native (Skia) runtimes of every supported platform, only used by fatJarUniversal
+val universalRuntime by configurations.creating
 
-    archiveBaseName.set("$projectName-linux-$archSuffix-$projectVersion")
+dependencies {
+    universalRuntime(compose.desktop.linux_x64)
+    universalRuntime(libs.compose.desktop.linux.arm64)
+    universalRuntime(compose.desktop.windows_x64)
+    universalRuntime(compose.desktop.macos_x64)
+    universalRuntime(compose.desktop.macos_arm64)
+}
+
+fun Jar.configureFatJar(baseName: String, extraClasspath: Configuration? = null) {
+    archiveBaseName.set(baseName)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
@@ -179,7 +184,10 @@ tasks.register("fatJarLinux", type = Jar::class) {
         attributes["Implementation-Version"] = projectVersion
         attributes["Main-Class"] = "com.jetpackduba.gitnuro.MainKt"
     }
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }) {
+
+    val classpath = listOfNotNull(configurations.runtimeClasspath.get(), extraClasspath).flatMap { it.files }
+
+    from(classpath.map { if (it.isDirectory) it else zipTree(it) }) {
         exclude(
             "META-INF/MANIFEST.MF",
             "META-INF/*.SF",
@@ -188,6 +196,21 @@ tasks.register("fatJarLinux", type = Jar::class) {
         )
     }
     with(tasks.jar.get() as CopySpec)
+}
+
+tasks.register("fatJarLinux", type = Jar::class) {
+    val archSuffix = if (isLinuxAarch64) {
+        "arm_aarch64"
+    } else {
+        "x86_64"
+    }
+
+    configureFatJar("$projectName-linux-$archSuffix-$projectVersion")
+}
+
+// Runs on Linux, Windows and macOS (x64 and arm64), as the project has no native code of its own
+tasks.register("fatJarUniversal", type = Jar::class) {
+    configureFatJar("$projectName-universal-$projectVersion", universalRuntime)
 }
 
 tasks.register("tasksList") {
