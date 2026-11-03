@@ -26,8 +26,6 @@ import com.jetpackduba.gitnuro.app.generated.resources.Res
 import com.jetpackduba.gitnuro.app.generated.resources.logo
 import com.jetpackduba.gitnuro.avatarproviders.GravatarAvatarProvider
 import com.jetpackduba.gitnuro.avatarproviders.NoneAvatarProvider
-import com.jetpackduba.gitnuro.common.OS
-import com.jetpackduba.gitnuro.common.currentOs
 import com.jetpackduba.gitnuro.common.systemSeparator
 import com.jetpackduba.gitnuro.data.DataStoreFilesProvider
 import com.jetpackduba.gitnuro.data.git.signers.AppGpgSigner
@@ -63,7 +61,6 @@ import org.eclipse.jgit.lib.Signers
 import org.eclipse.jgit.util.LfsFactory
 import org.jetbrains.compose.resources.painterResource
 import java.io.File
-import java.io.FileOutputStream
 import java.nio.file.Paths
 import javax.inject.Inject
 
@@ -116,7 +113,6 @@ class App @Inject constructor(
 
     @OptIn(ExperimentalFoundationApi::class)
     suspend fun start(args: Array<String>) {
-        initNativeDependencies()
         logsRepository.initLogging()
         observeAndApplyProxySettingsUseCase()
         dataStoreFilesProvider.initDataStoreDirPath()
@@ -241,29 +237,6 @@ class App @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun initNativeDependencies() {
-        val gitnuroRsName = when (currentOs) {
-            OS.LINUX -> "libgitnuro_rs.so"
-            OS.WINDOWS -> "gitnuro_rs.dll"
-            OS.MAC -> "libgitnuro_rs.dylib"
-            else -> throw Exception("OS not supported")
-        }
-
-        val gitnuroRsInputStream = javaClass.getResourceAsStream("/$gitnuroRsName")
-
-        gitnuroRsInputStream?.use { inputStream ->
-            val tempDir = tempFilesManager.tempDir()
-            val gitnuroRsFile = File(tempDir, gitnuroRsName)
-            val outputStream = FileOutputStream(gitnuroRsFile)
-
-            inputStream.copyTo(outputStream)
-            outputStream.flush()
-            outputStream.close()
-
-            System.load(gitnuroRsFile.absolutePath)
-        } ?: throw Exception("GitnuroRs native dependency not found")
     }
 
     private fun initProxySettings() {
