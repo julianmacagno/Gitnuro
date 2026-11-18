@@ -24,14 +24,15 @@ class SshCredentialsProvider @Inject constructor(
     override fun isInteractive() = true
 
     override fun supports(vararg items: CredentialItem): Boolean {
-        return items.size == 1 && items.first() is Password
+        return items.any { it is Password }
     }
 
     override fun get(uri: URIish?, vararg items: CredentialItem): Boolean {
-        // Should be safe to get without null check, as it's already done in [SshCredentialsProvider::supports]
+        // JGit also asks yes/no questions (e.g. trusting an unknown host). Those are declined: hosts must already
+        // be in known_hosts or the SSH config must allow them (StrictHostKeyChecking).
         val passwordItem = items
             .filterIsInstance<Password>()
-            .first()
+            .firstOrNull() ?: return false
 
         val cachedCredentials = credentialsCacheRepository.getCachedSshCredentials(uri.toString())
         val cacheCredentialsInMemory = runBlocking {

@@ -1,6 +1,5 @@
 package com.jetpackduba.gitnuro.data.git.signers
 
-import com.jetpackduba.gitnuro.Signing
 import com.jetpackduba.gitnuro.common.extensions.TAG
 import com.jetpackduba.gitnuro.common.printError
 import com.jetpackduba.gitnuro.domain.credentials.CredentialsStateManager
@@ -59,8 +58,7 @@ class SshSigner @Inject constructor(
                     SshSigningError.InvalidPassword(password.orEmpty())
                 }
             ) {
-                val signer = Signing()
-                signer.signData(data, signingKey, password)
+                signWithSshKey(data, signingKey, password)
             }
         }
     }

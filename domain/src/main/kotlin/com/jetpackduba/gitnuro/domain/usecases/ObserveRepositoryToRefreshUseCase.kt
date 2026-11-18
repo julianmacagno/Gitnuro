@@ -1,6 +1,6 @@
 package com.jetpackduba.gitnuro.domain.usecases
 
-import com.jetpackduba.gitnuro.FileType
+import com.jetpackduba.gitnuro.domain.models.FileType
 import com.jetpackduba.gitnuro.common.printDebug
 import com.jetpackduba.gitnuro.common.printError
 import com.jetpackduba.gitnuro.common.systemSeparator
