@@ -172,6 +172,14 @@ class RepositoryTabViewModel @AssistedInject constructor(
 
     override val extraInfo: StateFlow<String?> = repositoryPath
 
+    val persistedPath: String?
+        get() = when (val state = repositorySelectionState.value) {
+            is RepositorySelectionState.Open -> state.path
+            is RepositorySelectionState.Opening -> state.path
+            RepositorySelectionState.Unknown -> initialPath
+            RepositorySelectionState.None -> null
+        }
+
     val backStack = NavBackStack<Screen>(
         if (initialPath == null) {
             Screen.Welcome

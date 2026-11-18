@@ -3,7 +3,6 @@ package com.jetpackduba.gitnuro.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jetpackduba.gitnuro.di.TabComponent
-import com.jetpackduba.gitnuro.domain.models.RepositorySelectionState
 import com.jetpackduba.gitnuro.domain.repositories.GlobalSettingsRepository
 import com.jetpackduba.gitnuro.domain.repositories.TabsOpenRepository
 import com.jetpackduba.gitnuro.domain.usecases.CleanRepositoriesResourcesUseCase
@@ -37,8 +36,11 @@ class AppViewModel @Inject constructor(
     val activeGroup: StateFlow<String>
         field = MutableStateFlow("")
 
+    private var groupSelectedTabIndexMap = emptyMap<String, Int>()
+
     suspend fun loadPersistedTabs() {
         activeGroup.value = tabsOpenRepository.activeGroup.first()
+        groupSelectedTabIndexMap = tabsOpenRepository.groupSelectedTabIndexMap.first()
         groups.value = tabsOpenRepository.groups.first().let {
             if (activeGroup.value in it) it else mapOf(activeGroup.value to emptyList<String>()) + it
         }
@@ -148,21 +150,33 @@ class AppViewModel @Inject constructor(
 
         updatePersistedTabs()
         groups.update { it + (activeGroup.value to tabsOpenRepository.openTabs.first()) }
+        groupSelectedTabIndexMap += activeGroup.value to (tabsOpenRepository.selectedTabIndex.first() ?: 0)
 
         val paths = groups.value.getValue(name)
         val newTabs = paths.map { newAppTab2(it) }.ifEmpty { listOf(newAppTab2()) }
+        val selectedIndex = groupSelectedTabIndexMap[name]?.takeIf { it in newTabs.indices } ?: 0
 
         tabs.value.forEach { it.data.dispose() }
         tabs.value = newTabs
-        currentTab.value = newTabs.first()
+        currentTab.value = newTabs[selectedIndex]
         activeGroup.value = name
 
         cleanRepositoriesResourcesUseCase(paths)
         tabsOpenRepository.updateGroups(groups.value)
         tabsOpenRepository.updateActiveGroup(name)
         tabsOpenRepository.updateOpenTabs(paths)
-        tabsOpenRepository.updateSelectedTabIndex(0)
+        tabsOpenRepository.updateSelectedTabIndex(selectedIndex)
+        tabsOpenRepository.updateGroupSelectedTabIndexMap(groupSelectedTabIndexMap)
         System.gc()
+    }
+
+    fun switchToAdjacentGroup(offset: Int) {
+        val nameList = groups.value.keys.toList()
+        val index = nameList.indexOf(activeGroup.value)
+
+        if (index < 0 || nameList.size < 2) return
+
+        switchGroup(nameList[Math.floorMod(index + offset, nameList.size)])
     }
 
     fun createGroup(name: String) {
@@ -176,6 +190,8 @@ class AppViewModel @Inject constructor(
         if (newName in groups.value) return@launch
 
         groups.update { it.mapKeys { (key, _) -> if (key == oldName) newName else key } }
+        groupSelectedTabIndexMap = groupSelectedTabIndexMap.mapKeys { (key, _) -> if (key == oldName) newName else key }
+        tabsOpenRepository.updateGroupSelectedTabIndexMap(groupSelectedTabIndexMap)
         if (activeGroup.value == oldName) {
             activeGroup.value = newName
             tabsOpenRepository.updateActiveGroup(newName)
@@ -187,23 +203,15 @@ class AppViewModel @Inject constructor(
         if (name == activeGroup.value) return@launch
 
         groups.update { it - name }
+        groupSelectedTabIndexMap -= name
+        tabsOpenRepository.updateGroupSelectedTabIndexMap(groupSelectedTabIndexMap)
         tabsOpenRepository.updateGroups(groups.value)
     }
 
     suspend fun updatePersistedTabs() {
         val tabsToPersist = tabs
             .value
-            .mapNotNull {
-                when (val selectionState = it.data.repositorySelectionState.value) {
-                    RepositorySelectionState.None -> null
-                    is RepositorySelectionState.Open -> it to selectionState.path
-                    is RepositorySelectionState.Opening -> it to selectionState.path
-                    RepositorySelectionState.Unknown -> {
-                        val path = it.data.repositoryPath.value ?: return@mapNotNull null
-                        it to path
-                    }
-                }
-            }
+            .mapNotNull { tab -> tab.data.persistedPath?.let { tab to it } }
 
         val paths = tabsToPersist.map { it.second }
         tabsOpenRepository.updateOpenTabs(paths)

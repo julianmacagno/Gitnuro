@@ -317,6 +317,16 @@ class App @Inject constructor(
                                 true
                             }
 
+                            it.matchesBinding(KeybindingOption.CHANGE_GROUP_LEFT) -> {
+                                appViewModel.switchToAdjacentGroup(-1)
+                                true
+                            }
+
+                            it.matchesBinding(KeybindingOption.CHANGE_GROUP_RIGHT) -> {
+                                appViewModel.switchToAdjacentGroup(1)
+                                true
+                            }
+
                             else -> false
                         }
                     }

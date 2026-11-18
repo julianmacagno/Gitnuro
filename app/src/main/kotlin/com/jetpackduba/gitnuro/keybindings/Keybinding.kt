@@ -93,6 +93,10 @@ enum class KeybindingOption {
      */
     CHANGE_CURRENT_TAB_RIGHT,
 
+    CHANGE_GROUP_LEFT,
+
+    CHANGE_GROUP_RIGHT,
+
     /**
      * Used to open the settings screen
      */
@@ -153,6 +157,12 @@ private fun baseKeybindings() = mapOf(
         Keybinding(key = Key.DirectionRight, alt = true),
         Keybinding(key = Key.Tab, control = true),
     ),
+    KeybindingOption.CHANGE_GROUP_LEFT to listOf(
+        Keybinding(key = Key.DirectionLeft, alt = true, shift = true),
+    ),
+    KeybindingOption.CHANGE_GROUP_RIGHT to listOf(
+        Keybinding(key = Key.DirectionRight, alt = true, shift = true),
+    ),
     KeybindingOption.SETTINGS to listOf(
         Keybinding(key = Key.S, control = true, alt = true),
     ),
@@ -193,7 +203,13 @@ private fun macKeybindings(): Map<KeybindingOption, List<Keybinding>> {
         ),
         KeybindingOption.CHANGE_CURRENT_TAB_RIGHT to listOf(
             Keybinding(key = Key.Tab, control = true),
-        )
+        ),
+        KeybindingOption.CHANGE_GROUP_LEFT to listOf(
+            Keybinding(key = Key.DirectionLeft, meta = true, alt = true),
+        ),
+        KeybindingOption.CHANGE_GROUP_RIGHT to listOf(
+            Keybinding(key = Key.DirectionRight, meta = true, alt = true),
+        ),
     )
 
     for (key in bindingsToReplace) {

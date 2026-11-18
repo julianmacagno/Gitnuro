@@ -26,6 +26,9 @@ class DataStoreTabsOpenRepository @Inject constructor(
     override val activeGroup: Flow<String> = dataStore[activeTabGroupPreference]
         .map { it ?: DEFAULT_GROUP_NAME }
 
+    override val groupSelectedTabIndexMap: Flow<Map<String, Int>> = dataStore[tabGroupSelectedIndexMapPreference]
+        .map { it?.let { json.decodeFromString<Map<String, Int>>(it) }.orEmpty() }
+
     override suspend fun updateOpenTabs(tabs: List<String>) {
         dataStore.setValue(tabsOpenPreference, pathsListMapper.toData(tabs))
     }
@@ -40,6 +43,10 @@ class DataStoreTabsOpenRepository @Inject constructor(
 
     override suspend fun updateActiveGroup(name: String) {
         dataStore.setValue(activeTabGroupPreference, name)
+    }
+
+    override suspend fun updateGroupSelectedTabIndexMap(value: Map<String, Int>) {
+        dataStore.setValue(tabGroupSelectedIndexMapPreference, json.encodeToString(value))
     }
 
     private companion object {

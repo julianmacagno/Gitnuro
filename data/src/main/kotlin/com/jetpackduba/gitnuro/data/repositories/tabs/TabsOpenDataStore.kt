@@ -11,6 +11,7 @@ val tabsOpenPreference = stringPreferencesKey("tabs_open")
 val selectedTabIndexPreference = intPreferencesKey("selected_tab")
 val tabGroupsPreference = stringPreferencesKey("tab_groups")
 val activeTabGroupPreference = stringPreferencesKey("active_tab_group")
+val tabGroupSelectedIndexMapPreference = stringPreferencesKey("tab_group_selected_indexes")
 
 class TabsOpenDataStore(
     private val dataStore: DataStore<Preferences>
