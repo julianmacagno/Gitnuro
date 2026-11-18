@@ -5,154 +5,31 @@ on:
     tags:
       - '**'
 
+permissions:
+  contents: write
+
 jobs:
-  build_linux_x86_64:
-    runs-on: [self-hosted, linux]
+  release:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           lfs: true
-      - name: Git LFS Pull
-        run: git lfs pull
-      - name: Verify LFS fonts are present
-        run: ls -lah app/src/main/composeResources/font
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'jetbrains'
-          architecture: x64
-      - name: Java version
-        run: java --version
-      - name: Build with Gradle
-        run: ./gradlew fatJarLinux -PisLinuxAarch64=false
-      - name: Generate SHA256 Checksum
-        working-directory: ./app/build/libs
-        run: find . -type f -exec bash -c "sha256sum {}  > {}.sum " \;
+      - name: Build universal jar
+        run: ./gradlew fatJarUniversal
+      - name: Collect artifacts
+        run: |
+          mkdir Output
+          cp app/build/libs/GitIA-universal-*.jar Output/GitIA-universal.jar
+          cd Output
+          find . -type f -exec bash -c "sha256sum {} > {}.sum" \;
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          body: "Beta release"
-          prerelease: true
           draft: true
-          repository: JetpackDuba/Gitnuro
-          with:
-          files: |
-            app/build/libs/Gitnuro-linux-x86_64-*.jar
-            app/build/libs/Gitnuro-linux-x86_64-*.jar.sum
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
-
-  build_linux_aarch64:
-    runs-on: [self-hosted, linux]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          lfs: true
-      - name: Git LFS Pull
-        run: git lfs pull
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'jetbrains'
-          architecture: x64
-      - name: Build with Gradle
-        run: ./gradlew fatJarLinux -PisLinuxAarch64=true
-      - name: Generate SHA256 Checksum
-        working-directory: ./app/build/libs
-        run: find . -type f -exec bash -c "sha256sum {}  > {}.sum " \;
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          body: "Beta release"
-          prerelease: true
-          draft: true
-          repository: JetpackDuba/Gitnuro
-          with:
-          files: |
-            app/build/libs/Gitnuro-linux-arm_aarch64-*.jar
-            app/build/libs/Gitnuro-linux-arm_aarch64-*.jar.sum
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
-
-  build_windows:
-    runs-on: windows-latest
-    steps:
-      - name: Print Tag
-        run: echo ${{github.ref_name}}
-      - uses: actions/checkout@v7
-        with:
-          lfs: true
-      - name: Git LFS Pull
-        run: git lfs pull
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'jetbrains'
-          architecture: x64
-      - name: Run gradle build
-        run: cmd /C gradlew.bat createDistributable
-      - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
-        with:
-          path: gitnuro.iss
-          options: /O+ /DMyAppVersion="${{github.ref_name}}"
-      - name: Windows portable ZIP
-        run: Compress-Archive -Path app/build/compose/binaries/main/app/Gitnuro/* -Destination Output/Gitnuro_Windows_Portable_${{github.ref_name}}.zip
-      - name: Generate SHA256 Checksum
-        shell: bash
-        working-directory: ./Output/
-        run: find -type f -exec bash -c "sha256sum {}  > {}.sum " \;
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          body: "Beta release"
-          prerelease: true
-          draft: true
-          repository: JetpackDuba/Gitnuro
-          with:
-          files: |
-            Output/Gitnuro*.exe
-            Output/Gitnuro*.sum
-            Output/Gitnuro*.zip
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
-
-  build_macos:
-    runs-on: [self-hosted, macOS]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          lfs: true
-      - name: Git LFS Pull
-        run: git lfs pull
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'jetbrains'
-      - name: Build with Gradle
-        run: ./gradlew createDistributable
-      - name: Create output directory
-        run: mkdir Output
-      - name: MacOS DMG
-        working-directory: app/build/compose/binaries/main/app/
-        run: zip -r ../../../../../../Output/Gitnuro_macos_${{github.ref_name}}.zip .
-      - name: Generate SHA256 Checksum
-        working-directory: ./Output/
-        run: find . -type f -exec bash -c "shasum -a 256 {}  > {}.sum " \;
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          body: "Beta release"
-          prerelease: true
-          draft: true
-          repository: JetpackDuba/Gitnuro
-          with:
-          files: |
-            Output/Gitnuro*.zip
-            Output/Gitnuro*.sum
-          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          files: Output/*

@@ -1,4 +1,4 @@
-# Developing Gitnuro
+# Developing GitIA
 
 ## Requirements
 
@@ -40,3 +40,15 @@ won't have to open the "Gradle" window again.
 You can also run these in debug mode and set break points in the code.
 
 Alternatively on CLI: `./gradlew run` or `./gradlew test`.
+
+## Releasing
+
+The app checks `latest.json` in this repository (`AppConstants.VERSION_CHECK_URL`) and shows an update notice when its
+`appCode` is greater than `AppConstants.APP_VERSION_CODE`. To release:
+
+1. Bump `AppConstants.APP_VERSION` and `AppConstants.APP_VERSION_CODE` (always increase the code), `projectVersion` and
+   `projectVersionSimplified` in `app/build.gradle.kts`.
+2. Update `appVersion` and `appCode` in `latest.json` with the same values.
+3. Merge to `main`, push the tag (`git tag v<version> && git push --tags`) and publish the draft release created by the
+   workflow. `latest.json` must reach `main` only after the release is published, otherwise users get a notice with
+   nothing to download.

@@ -16,12 +16,12 @@ plugins {    // Apply the shared build logic from a convention plugin.
 val javaLanguageVersion = JavaLanguageVersion.of(25)
 
 // Remember to update Constants.APP_VERSION when changing this version
-val projectVersion = "2.1"
+val projectVersion = "2.2"
 
-val projectName = "Gitnuro"
+val projectName = "GitIA"
 
 // Required for JPackage, as it doesn't accept additional suffixes after the version.
-val projectVersionSimplified = "2.1.0"
+val projectVersionSimplified = "2.2.0"
 
 val appPackageName = "com.jetpackduba.gitnuro"
 group = appPackageName
@@ -106,6 +106,17 @@ enum class OS {
     MAC
 }
 
+tasks.processResources {
+    from("..") {
+        include("LICENSE", "THIRD-PARTY-NOTICES.md", "licenses/*")
+        into("META-INF/gitnuro")
+    }
+    from("../icons") {
+        include("icon.png", "icon.ico", "icon.icns")
+        into("installer")
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
     testLogging {
@@ -182,9 +193,17 @@ fun Jar.configureFatJar(baseName: String, extraClasspath: Configuration? = null)
         attributes["Implementation-Title"] = name
         attributes["Implementation-Version"] = projectVersion
         attributes["Main-Class"] = "com.jetpackduba.gitnuro.MainKt"
+        attributes["Add-Opens"] = "java.desktop/sun.awt.X11"
     }
 
     val classpath = listOfNotNull(configurations.runtimeClasspath.get(), extraClasspath).flatMap { it.files }
+
+    classpath.filter { it.isFile }.forEach { dependencyJar ->
+        from(zipTree(dependencyJar)) {
+            include("META-INF/LICENSE*", "META-INF/NOTICE*", "META-INF/COPYING*")
+            into("META-INF/licenses/${dependencyJar.nameWithoutExtension}")
+        }
+    }
 
     from(classpath.map { if (it.isDirectory) it else zipTree(it) }) {
         exclude(
