@@ -1,19 +1,18 @@
 package com.jetpackduba.gitnuro.extensions
 
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import com.jetpackduba.gitnuro.app.generated.resources.*
 import com.jetpackduba.gitnuro.domain.models.StatusEntry
 import com.jetpackduba.gitnuro.domain.models.StatusType
 import com.jetpackduba.gitnuro.theme.addFile
 import com.jetpackduba.gitnuro.theme.conflictFile
 import com.jetpackduba.gitnuro.theme.modifyFile
 import org.eclipse.jgit.diff.DiffEntry
+import org.jetbrains.compose.resources.DrawableResource
 
-val StatusEntry.icon: ImageVector
+val StatusEntry.icon: DrawableResource
     get() = statusType.icon
 
 val StatusEntry.iconColor: Color
@@ -22,24 +21,24 @@ val StatusEntry.iconColor: Color
 
 
 
-val StatusType.icon: ImageVector
+val StatusType.icon: DrawableResource
     get() {
         return when (this) {
-            StatusType.ADDED -> Icons.Default.Add
-            StatusType.MODIFIED -> Icons.Default.Edit
-            StatusType.REMOVED -> Icons.Default.Delete
-            StatusType.CONFLICTING -> Icons.Default.Warning
+            StatusType.ADDED -> Res.drawable.add
+            StatusType.MODIFIED -> Res.drawable.edit_filled
+            StatusType.REMOVED -> Res.drawable.delete_filled
+            StatusType.CONFLICTING -> Res.drawable.warning
         }
     }
 
-val DiffEntry.icon: ImageVector
+val DiffEntry.icon: DrawableResource
     get() {
         return when (this.changeType) {
-            DiffEntry.ChangeType.ADD -> Icons.Default.Add
-            DiffEntry.ChangeType.MODIFY -> Icons.Default.Edit
-            DiffEntry.ChangeType.DELETE -> Icons.Default.Delete
-            DiffEntry.ChangeType.COPY -> Icons.Default.Add
-            DiffEntry.ChangeType.RENAME -> Icons.Default.Refresh
+            DiffEntry.ChangeType.ADD -> Res.drawable.add
+            DiffEntry.ChangeType.MODIFY -> Res.drawable.edit_filled
+            DiffEntry.ChangeType.DELETE -> Res.drawable.delete_filled
+            DiffEntry.ChangeType.COPY -> Res.drawable.add
+            DiffEntry.ChangeType.RENAME -> Res.drawable.refresh
             else -> throw NotImplementedError("Unexpected ChangeType")
         }
     }
