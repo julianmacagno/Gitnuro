@@ -27,6 +27,7 @@ object PreferencesKeys {
     val autoStashOnMergePreference get() = booleanPreferencesKey("auto_stash_on_merge")
     val pullWithRebasePreference get() = booleanPreferencesKey("pull_with_rebase")
     val pushWithLeasePreference get() = booleanPreferencesKey("push_with_lease")
+    val autoFetchAllPreference get() = booleanPreferencesKey("auto_fetch_all")
     val cloneDefaultDirectoryPreference get() = stringPreferencesKey("clone_default_directory")
 
     val useProxyPreference get() = booleanPreferencesKey("use_proxy")

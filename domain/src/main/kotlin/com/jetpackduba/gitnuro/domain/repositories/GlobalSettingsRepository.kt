@@ -29,6 +29,7 @@ interface GlobalSettingsRepository {
     // Git
     val pullWithRebase: Flow<Boolean?>
     val pushWithLease: Flow<Boolean?>
+    val autoFetchAll: Flow<Boolean?>
     val fastForwardMerge: Flow<Boolean?>
     val autoStashOnMerge: Flow<Boolean?>
     val cloneDefaultDirectory: Flow<String?>

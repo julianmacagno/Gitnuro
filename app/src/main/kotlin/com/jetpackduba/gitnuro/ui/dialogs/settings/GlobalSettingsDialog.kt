@@ -359,6 +359,16 @@ private fun Section(name: String) {
 private fun RemoteActions(settingsViewState: SettingsViewState, onAction: (SettingsAction) -> Unit) {
     val pullRebase = settingsViewState.pullWithRebase
     val pushWithLease = settingsViewState.pushWithLease
+    val autoFetchAll = settingsViewState.autoFetchAll
+
+    SettingToggle(
+        title = "Fetch all remotes automatically",
+        subtitle = "Background fetch on window focus or tab change, every 10 minutes at most. Never pulls or merges",
+        value = autoFetchAll,
+        onValueChanged = { value ->
+            onAction(SettingsAction.SetConfig(GlobalConfig.AutoFetchAll(value)))
+        }
+    )
 
     SettingToggle(
         title = "Pull with rebase as default",

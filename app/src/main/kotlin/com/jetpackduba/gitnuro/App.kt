@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
@@ -207,6 +209,14 @@ class App @Inject constructor(
                 state = windowState,
                 icon = painterResource(Res.drawable.logo),
             ) {
+                val windowInfo = LocalWindowInfo.current
+
+                LaunchedEffect(currentTab) {
+                    snapshotFlow { windowInfo.isWindowFocused }.collect { isFocused ->
+                        if (isFocused) currentTab?.data?.autoFetchAll()
+                    }
+                }
+
                 val compositionValues: MutableList<ProvidedValue<*>> =
                     mutableListOf(LocalTextContextMenu provides AppPopupMenu())
 
