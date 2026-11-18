@@ -35,6 +35,7 @@ class GlobalSettingsService @Inject constructor(
     val diffTextViewType: Flow<DiffTextViewType> get() = globalSettingsRepository.diffTextViewType.defaultIfNull { DEFAULT_DIFF_TEXT_VIEW_TYPE }
     val pullWithRebase: Flow<Boolean> get() = globalSettingsRepository.pullWithRebase.defaultIfNull { DEFAULT_PULL_WITH_REBASE }
     val pushWithLease: Flow<Boolean> get() = globalSettingsRepository.pushWithLease.defaultIfNull { DEFAULT_PUSH_WITH_LEASE }
+    val autoFetchAll: Flow<Boolean> get() = globalSettingsRepository.autoFetchAll.defaultIfNull { DEFAULT_AUTO_FETCH_ALL }
     val fastForwardMerge: Flow<Boolean> get() = globalSettingsRepository.fastForwardMerge.defaultIfNull { DEFAULT_FAST_FORWARD_MERGE }
     val autoStashOnMerge: Flow<Boolean> get() = globalSettingsRepository.autoStashOnMerge.defaultIfNull { DEFAULT_AUTO_STASH_ON_MERGE }
     val cloneDefaultDirectory: Flow<String?> get() = globalSettingsRepository.cloneDefaultDirectory
@@ -64,6 +65,7 @@ class GlobalSettingsService @Inject constructor(
         val DEFAULT_DIFF_TEXT_VIEW_TYPE = DiffTextViewType.Unified
         const val DEFAULT_PULL_WITH_REBASE = false
         const val DEFAULT_PUSH_WITH_LEASE = true
+        const val DEFAULT_AUTO_FETCH_ALL = false
         const val DEFAULT_FAST_FORWARD_MERGE = true
         const val DEFAULT_AUTO_STASH_ON_MERGE = true
         const val DEFAULT_USE_PROXY = false

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.v2.maxScrollOffset
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -111,6 +112,7 @@ fun <T : TabInformationProvider> TabsRow(
                     HorizontalDraggableItem(dragDropState, index) { _ ->
                         val tooltip by tab.extraInfo.collectAsState()
                         val tabName by tab.name.collectAsState()
+                        val isLoading by tab.isBackgroundTaskRunning.collectAsState()
 
 
                         InstantTooltip(tooltip) {
@@ -118,6 +120,7 @@ fun <T : TabInformationProvider> TabsRow(
                                 modifier = Modifier,
                                 title = tabName ?: defaultTabName,
                                 isSelected = currentTab == tab,
+                                isLoading = isLoading,
                                 onClick = {
                                     onTabSelected(tab)
                                 },
@@ -168,6 +171,7 @@ fun Tab(
     modifier: Modifier,
     title: String,
     isSelected: Boolean,
+    isLoading: Boolean,
     onClick: () -> Unit,
     onCloseTab: () -> Unit,
 ) {
@@ -210,6 +214,16 @@ fun Tab(
                 maxLines = 1,
                 softWrap = false,
             )
+
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(12.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colors.primaryVariant,
+                )
+            }
 
             IconButton(
                 onClick = onCloseTab,

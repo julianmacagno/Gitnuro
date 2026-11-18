@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface RepositoryStateRepository {
     val currentTask: StateFlow<TaskType?>
+    val isBackgroundTaskRunning: StateFlow<Boolean>
     val completedTasks: StateFlow<List<CompletedTask>>
     val lastOperationTimestamp: Flow<Long>
     val refreshTriggered: Flow<List<DataToRefresh>>

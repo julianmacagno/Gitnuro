@@ -3,6 +3,7 @@ package com.jetpackduba.gitnuro.data.repositories.configuration
 import com.jetpackduba.gitnuro.data.GlobalSettingsDataStore
 import com.jetpackduba.gitnuro.data.extensions.get
 import com.jetpackduba.gitnuro.data.extensions.setValue
+import com.jetpackduba.gitnuro.data.repositories.configuration.PreferencesKeys.autoFetchAllPreference
 import com.jetpackduba.gitnuro.data.repositories.configuration.PreferencesKeys.autoStashOnMergePreference
 import com.jetpackduba.gitnuro.data.repositories.configuration.PreferencesKeys.avatarProviderPreference
 import com.jetpackduba.gitnuro.data.repositories.configuration.PreferencesKeys.cacheCredentialsPreference
@@ -83,6 +84,7 @@ class DataStoreGlobalSettingsRepository @Inject constructor(
     // Git
     override val pullWithRebase get() = dataStore[pullWithRebasePreference]
     override val pushWithLease get() = dataStore[pushWithLeasePreference]
+    override val autoFetchAll get() = dataStore[autoFetchAllPreference]
     override val fastForwardMerge get() = dataStore[fastForwardMergePreference]
     override val autoStashOnMerge get() = dataStore[autoStashOnMergePreference]
     override val cloneDefaultDirectory get() = dataStore[cloneDefaultDirectoryPreference]
@@ -106,6 +108,7 @@ class DataStoreGlobalSettingsRepository @Inject constructor(
     override suspend fun setConfiguration(globalConfig: GlobalConfig) {
         dataStore.apply {
             when (globalConfig) {
+                is GlobalConfig.AutoFetchAll -> setValue(autoFetchAllPreference, globalConfig.value)
                 is GlobalConfig.AutoStashOnMerge -> setValue(autoStashOnMergePreference, globalConfig.value)
                 is GlobalConfig.CloneDefaultDirectory -> setValue(cloneDefaultDirectoryPreference, globalConfig.value)
                 is GlobalConfig.DateFormatCustomFormat -> setValue(dateFormatCustomFormatPreference, globalConfig.value)

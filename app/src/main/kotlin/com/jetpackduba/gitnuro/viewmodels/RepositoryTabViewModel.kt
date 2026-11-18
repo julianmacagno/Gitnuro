@@ -21,6 +21,7 @@ import com.jetpackduba.gitnuro.domain.repositories.FailureSeverity
 import com.jetpackduba.gitnuro.domain.repositories.RecentRepositoriesRepository
 import com.jetpackduba.gitnuro.domain.repositories.RepositoryDataRepository
 import com.jetpackduba.gitnuro.domain.repositories.RepositoryStateRepository
+import com.jetpackduba.gitnuro.domain.usecases.AutoFetchAllUseCase
 import com.jetpackduba.gitnuro.domain.usecases.GetWorktreeUseCase
 import com.jetpackduba.gitnuro.domain.usecases.FilterValidRepositoriesUseCase
 import com.jetpackduba.gitnuro.domain.usecases.OpenRepositoryUseCase
@@ -74,6 +75,7 @@ class RepositoryTabViewModel @AssistedInject constructor(
     private val removeRecentRepositoryUseCase: RemoveRecentRepositoryUseCase,
     private val getWorktreeUseCase: GetWorktreeUseCase,
     private val appViewModel: AppViewModel,
+    private val autoFetchAllUseCase: AutoFetchAllUseCase,
     @Assisted private val initialPath: String?,
     updatesRepository: UpdatesRepository,
 ) : IVerticalSplitPaneConfig by verticalSplitPaneConfig,
@@ -173,6 +175,12 @@ class RepositoryTabViewModel @AssistedInject constructor(
         .stateIn(null)
 
     override val extraInfo: StateFlow<String?> = repositoryPath
+
+    override val isBackgroundTaskRunning: StateFlow<Boolean> = repositoryStateRepository.isBackgroundTaskRunning
+
+    fun autoFetchAll() {
+        viewModelScope.launch { autoFetchAllUseCase() }
+    }
 
     val persistedPath: String?
         get() = when (val state = repositorySelectionState.value) {
