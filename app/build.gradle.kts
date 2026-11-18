@@ -48,7 +48,7 @@ dependencies {
     implementation(libs.compose.ui.util)
     implementation(libs.compose.components.animatedimage)
     implementation(libs.compose.components.resources)
-    implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.material.icons.core)
     implementation(libs.compose.navigation3)
 
     implementation(libs.jgit.core)
