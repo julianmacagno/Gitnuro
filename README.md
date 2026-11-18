@@ -19,7 +19,7 @@ can use it nor relying on web technologies.
 ## Download/Install
 
 One-line installer for Linux, macOS and Windows. It downloads the latest release and installs GitIA for the current
-user (menu entry, icon, uninstall). Requires Java 21 or newer.
+user (menu entry, icon, uninstall). Requires Java 17 or newer.
 
 Linux and macOS:
 

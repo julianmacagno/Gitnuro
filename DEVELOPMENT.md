@@ -13,8 +13,9 @@ If you don't have another preference, the recommendation is to download and inst
 
 - [Compose Multiplatform IDE Support](https://plugins.jetbrains.com/plugin/16541-compose-multiplatform-ide-support)
 
-By default, the JDK used by "IntelliJ IDEA Community Edition (2023.1.3)" is "JetBrains Runtime version 21" which is not
-currently supported by the project.
+Building requires JDK 25, the Gradle toolchain version (`JavaLanguageVersion` in `app/build.gradle.kts`). The produced
+bytecode targets Java 17 (`buildSrc/src/main/kotlin/kotlin-jvm.gradle.kts`), so the app runs on Java 17 or newer. Code
+must not use JDK APIs newer than 17; the compiler enforces it with `-Xjdk-release=17`.
 
 ## Alternative: Setting up JDK for use on CLI
 
@@ -24,8 +25,8 @@ Check which Java version this project currently uses (`cat build.gradle.kts | gr
 For instance on Debian-based systems, you'd run:
 
 ```bash
-sudo apt install openjdk-17-jre openjdk-17-jdk
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+sudo apt install openjdk-25-jdk
+export JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64
 ```
 
 Once it works (e.g. `./gradlew build`). On Linux, you may want to add that latter line to your `/etc/environment` or
