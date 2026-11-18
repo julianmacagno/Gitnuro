@@ -6,7 +6,6 @@ import com.jetpackduba.gitnuro.domain.interfaces.IUnstageHunkLineGitAction
 import com.jetpackduba.gitnuro.domain.models.EntryContent
 import com.jetpackduba.gitnuro.domain.models.Hunk
 import com.jetpackduba.gitnuro.domain.models.Line
-import com.jetpackduba.gitnuro.domain.models.LineType
 import org.eclipse.jgit.diff.DiffEntry
 import java.nio.ByteBuffer
 import javax.inject.Inject
@@ -20,7 +19,7 @@ class UnstageHunkLineGitAction @Inject constructor(
         repositoryPath: String,
         diffEntry: DiffEntry,
         hunk: Hunk,
-        line: Line
+        lineList: List<Line>
     ) = jgit.provide(repositoryPath) { git ->
         val repository = git.repository
         val dirCache = repository.lockDirCache()
@@ -39,27 +38,8 @@ class UnstageHunkLineGitAction @Inject constructor(
             if (entryContent !is EntryContent.Text)
                 return@provide
 
-            val textLines = getLinesFromRawTextGitAction(entryContent.rawText).toMutableList()
-
-            when (line.lineType) {
-                LineType.REMOVED -> {
-                    val previousContextLine = hunk.lines
-                        .takeWhile { it != line }
-                        .lastOrNull { it.lineType != LineType.REMOVED }
-
-                    val startingIndex = previousContextLine?.newLineNumber ?: -1
-
-                    textLines.add(startingIndex + 1, line.text)
-                }
-
-                LineType.ADDED -> {
-                    textLines.removeAt(line.newLineNumber)
-                }
-
-                else -> {}
-            }
-
-            val stagedFileText = textLines.joinToString("")
+            val textLineList = getLinesFromRawTextGitAction(entryContent.rawText)
+            val stagedFileText = HunkLinesEditor.unstage(textLineList, hunk, lineList).joinToString("")
             dirCacheEditor.add(
                 HunkEdit(
                     diffEntry.newPath,

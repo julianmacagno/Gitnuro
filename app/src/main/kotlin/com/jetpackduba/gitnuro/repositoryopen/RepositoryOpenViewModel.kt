@@ -1040,9 +1040,17 @@ class RepositoryOpenViewModel @Inject constructor(
         settings.setConfiguration(GlobalConfig.DiffDisplayFullFile(isDisplayFullFile))
     }
 
-    fun stageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) = stageHunkLineUseCase(entry, hunk, line)
+    fun stageHunkLineList(entry: DiffEntry, hunkLineList: List<Pair<Hunk, List<Line>>>) =
+        stageHunkLineUseCase(entry, hunkLineList)
 
-    fun unstageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) = unstageHunkLineUseCase(entry, hunk, line)
+    fun unstageHunkLineList(entry: DiffEntry, hunkLineList: List<Pair<Hunk, List<Line>>>) =
+        unstageHunkLineUseCase(entry, hunkLineList)
+
+    fun stageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) =
+        stageHunkLineList(entry, listOf(hunk to listOf(line)))
+
+    fun unstageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) =
+        unstageHunkLineList(entry, listOf(hunk to listOf(line)))
 
     fun openFileWithExternalApp(path: String) {
         openFileInExternalAppUseCase(path)
