@@ -4,17 +4,26 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.*
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 fun Modifier.backgroundIf(condition: Boolean, color: Color, elseColor: Color? = null): Modifier {
     return if (condition) {
@@ -124,4 +133,26 @@ private fun Modifier.hoverBackground(): Modifier {
 
     return this.hoverable(hoverInteraction)
         .indication(hoverInteraction, LocalIndication.current)
+}
+
+@Composable
+fun Modifier.pageKeyScroll(getLazyListState: () -> LazyListState): Modifier {
+    val coroutineScope = rememberCoroutineScope()
+
+    return onKeyEvent { event ->
+        val direction = when (event.key) {
+            Key.PageDown -> 1
+            Key.PageUp -> -1
+            else -> return@onKeyEvent false
+        }
+
+        if (event.type == KeyEventType.KeyDown) {
+            val lazyListState = getLazyListState()
+            val pageHeight = lazyListState.layoutInfo.viewportSize.height
+
+            coroutineScope.launch { lazyListState.scrollBy((direction * pageHeight).toFloat()) }
+        }
+
+        true
+    }
 }

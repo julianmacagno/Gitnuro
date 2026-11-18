@@ -40,6 +40,7 @@ import com.jetpackduba.gitnuro.domain.models.*
 import com.jetpackduba.gitnuro.domain.repositories.CloseableView
 import com.jetpackduba.gitnuro.extensions.handMouseClickable
 import com.jetpackduba.gitnuro.extensions.handOnHover
+import com.jetpackduba.gitnuro.extensions.pageKeyScroll
 import com.jetpackduba.gitnuro.extensions.toStringWithSpaces
 import com.jetpackduba.gitnuro.repositoryopen.RepositoryOpenViewModel
 import com.jetpackduba.gitnuro.theme.*
@@ -106,6 +107,7 @@ fun DiffPane(
             .fillMaxSize()
             .focusable(true)
             .focusRequester(focusRequester)
+            .pageKeyScroll { viewModel.lazyListState.value }
             .onFocusChanged {
                 if (it.isFocused) {
                     viewModel.addCloseableView(CloseableView.DIFF)
