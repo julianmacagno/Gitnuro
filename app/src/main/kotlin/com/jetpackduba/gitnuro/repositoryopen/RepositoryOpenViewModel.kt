@@ -124,6 +124,7 @@ class RepositoryOpenViewModel @Inject constructor(
     private val unstageHunkLineUseCase: UnstageHunkLineUseCase,
     private val resetHunkUseCase: ResetHunkUseCase,
     private val discardHunkLineUseCase: DiscardHunkLineUseCase,
+    private val discardSelectedTextUseCase: DiscardSelectedTextUseCase,
     private val statusStageUseCase: StatusStageUseCase,
     private val statusUnstageUseCase: StatusUnstageUseCase,
     private val openFileInExternalAppUseCase: OpenFileInExternalAppUseCase,
@@ -1057,6 +1058,9 @@ class RepositoryOpenViewModel @Inject constructor(
     }
 
     fun discardHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) = discardHunkLineUseCase(entry, hunk, line)
+
+    fun discardSelectedText(entry: DiffEntry, selectedLineTextList: List<SelectedLineText>) =
+        discardSelectedTextUseCase(entry, selectedLineTextList)
 
     fun openSubmodule(path: String) {
         val repositoryPath = repositoryDataRepository.repositoryPath
