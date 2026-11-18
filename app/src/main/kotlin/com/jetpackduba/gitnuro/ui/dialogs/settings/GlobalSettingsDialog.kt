@@ -396,7 +396,7 @@ private fun Authentication(settingsViewState: SettingsViewState, onAction: (Sett
 
     SettingToggle(
         title = "Cache HTTP credentials in memory",
-        subtitle = "If active, HTTP Credentials will be remembered until Gitnuro is closed",
+        subtitle = "If active, HTTP Credentials will be remembered until GitIA is closed",
         value = cacheCredentialsInMemory,
         onValueChanged = { value ->
             onAction(SettingsAction.SetConfig(GlobalConfig.CacheCredentialsInMemory(value)))
@@ -424,7 +424,7 @@ fun Terminal(settingsViewState: SettingsViewState, onAction: (SettingsAction) ->
 
     SettingTextInput(
         title = "Custom terminal path",
-        subtitle = "If empty, Gitnuro will try to open the default terminal emulator",
+        subtitle = "If empty, GitIA will try to open the default terminal emulator",
         value = terminalPath,
         onValueChanged = { value ->
             onAction(SettingsAction.SetConfig(GlobalConfig.TerminalPath(value)))

@@ -1,15 +1,42 @@
-# Gitnuro - Multiplatform Git Client
+# GitIA - An enhanced, AI-developed fork of Gitnuro
 
-[![Latest release](https://img.shields.io/github/v/release/JetpackDuba/Gitnuro?color=blue&label=latest%20release)](https://github.com/JetpackDuba/Gitnuro/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/julianmacagno/Gitnuro?color=blue&label=latest%20release)](https://github.com/julianmacagno/Gitnuro/releases/latest)
 
-![Icon](res/img/cover.png)
+<img src="icons/logo.svg" alt="GitIA icon" width="128">
+
+> **GitIA is an unofficial, enhanced, AI-developed fork** of [Gitnuro](https://github.com/JetpackDuba/Gitnuro), created by Abdelilah El Aissaoui
+> ([JetpackDuba](https://github.com/JetpackDuba)) and contributors. It is not affiliated with or endorsed by the original
+> author. This fork modifies the original code since November 2026 (see the git history for every change) and is
+> distributed under the same license (GPLv3). Please report problems of this fork in its own issue tracker, not in the
+> original project's. The official builds are in the
+> [original repository](https://github.com/JetpackDuba/Gitnuro/releases/latest).
 
 A FOSS Git client based on (Jetbrains) Compose and JGit.
 
-The main goal of Gitnuro is to provide a multiplatform open source Git client without any kind of constraint to how you
+The main goal of GitIA is to provide a multiplatform open source Git client without any kind of constraint to how you
 can use it nor relying on web technologies.
 
 ## Download/Install
+
+One-line installer for Linux, macOS and Windows. It downloads the latest release and installs GitIA for the current
+user (menu entry, icon, uninstall). Requires Java 21 or newer.
+
+Linux and macOS:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/julianmacagno/Gitnuro/main/install.sh | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/julianmacagno/Gitnuro/main/install.ps1 | iex
+```
+
+Uninstall: `java -jar GitIA-universal.jar --uninstall` (on Windows also from "Installed apps"). To publish a release, push a tag (`git tag v2.1.1 && git push --tags`) and publish the draft
+created by the workflow; the installers always download the latest published release.
+
+Official builds of the original project (not this fork):
 
 Linux:
 
@@ -17,7 +44,6 @@ Linux:
   running `flatpak install com.jetpackduba.Gitnuro` if you have Flatpak & Flathub already setup.
     - If Flathub is not set up, you can add the source with the following
       command `flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo`.
-- JAR file can be executed as a portable version (Requires JRE 17).
 
 Windows:
 
@@ -30,7 +56,7 @@ MacOS:
 
 ## Features
 
-Gitnuro has support for the following features:
+GitIA has support for the following features:
 
 - View diffs for text based files.
 - View your history log and all its branches.
@@ -87,17 +113,17 @@ See [this page](DEVELOPMENT.md) for how to set up your development environment.
 
 ## FAQ
 
-> Is Gitnuro completly free?
+> Is GitIA completely free?
 
 Yes, free in both meanings of the word (in money and freedom).
 
-> Does Gitnuro keep track of my data?
+> Does GitIA keep track of my data?
 
-Gitnuro does not track data in any way, don't worry.
+GitIA does not track data in any way, don't worry.
 
 > I don't like the built-in themes, can I create a custom one?
 
-Gitnuro includes the option to set custom themes in a JSON format. Keep in mind that themes may break with new releases,
+GitIA includes the option to set custom themes in a JSON format. Keep in mind that themes may break with new releases,
 making the default theme the fallback option.
 
 For the latest stable version, you can use this JSON as an example:
@@ -172,7 +198,20 @@ Example for windows (you may want to edit `C:\Program Files\Git\etc\gitconfig`):
    helper = C:/Program Files/Git/mingw64/bin/git-credential-manager-core.exe
 ```
 
-## Sponsors
+## Credits
 
-Thank you to all the sponsors for helping improve Gitnuro and JetBrains for providing the necessary tooling.
+This fork exists thanks to the work of **Abdelilah El Aissaoui** ([JetpackDuba](https://github.com/JetpackDuba)), who
+created Gitnuro and has developed it for years, and of every
+[contributor of the original project](https://github.com/JetpackDuba/Gitnuro/graphs/contributors). Almost all of the code
+in this repository is theirs. If you find this fork useful, please consider
+[sponsoring the original author](https://github.com/sponsors/JetpackDuba) and starring the
+[original repository](https://github.com/JetpackDuba/Gitnuro).
+
+Thanks also to JetBrains for the tooling and to the authors of the open source libraries this project uses.
+
+## License
+
+GitIA is free software licensed under the GNU General Public License v3.0 (see [LICENSE](LICENSE)). It comes with
+ABSOLUTELY NO WARRANTY. Third-party components and their licenses are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
