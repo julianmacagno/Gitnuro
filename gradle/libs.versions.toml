@@ -14,7 +14,6 @@ ktor = "3.3.2"
 coil = "3.3.0"
 compose = "1.12.2"
 composeNav = "1.1.1"
-materialIcons = "1.7.3"
 coroutines = "1.10.2"
 datastore = "1.2.1"
 androidx-viewmodel = "2.10.0"
@@ -24,7 +23,6 @@ compose-desktop-linux-arm64 = { group = "org.jetbrains.compose.desktop", name = 
 compose-ui-util = { group = "org.jetbrains.compose.ui", name = "ui-util", version.ref = "compose" }
 compose-components-animatedimage = { group = "org.jetbrains.compose.components", name = "components-animatedimage", version.ref = "compose" }
 compose-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "compose" }
-compose-material-icons-core = { group = "org.jetbrains.compose.material", name = "material-icons-core", version.ref = "materialIcons" }
 
 compose-navigation3 = { group = "org.jetbrains.androidx.navigation3", name = "navigation3-ui", version.ref = "composeNav" }
 

@@ -16,8 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -35,7 +33,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -463,7 +460,7 @@ fun SearchFilter(
                             scope.launch { logViewModel.selectPreviousFilterCommit() }
                         }
                     ) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
+                        Icon(painterResource(Res.drawable.arrow_up), contentDescription = null)
                     }
 
                     IconButton(
@@ -473,7 +470,7 @@ fun SearchFilter(
                             scope.launch { logViewModel.selectNextFilterCommit() }
                         }
                     ) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                        Icon(painterResource(Res.drawable.expand_more), contentDescription = null)
                     }
 
                     IconButton(
@@ -775,7 +772,7 @@ fun LogStatusSummary(statusSummary: StatusSummary, modifier: Modifier) {
         if (statusSummary.modifiedCount > 0) {
             SummaryEntry(
                 count = statusSummary.modifiedCount,
-                icon = Icons.Default.Edit,
+                icon = Res.drawable.edit_filled,
                 color = MaterialTheme.colors.modifyFile,
             )
         }
@@ -783,7 +780,7 @@ fun LogStatusSummary(statusSummary: StatusSummary, modifier: Modifier) {
         if (statusSummary.addedCount > 0) {
             SummaryEntry(
                 count = statusSummary.addedCount,
-                icon = Icons.Default.Add,
+                icon = Res.drawable.add,
                 color = MaterialTheme.colors.addFile,
             )
         }
@@ -791,7 +788,7 @@ fun LogStatusSummary(statusSummary: StatusSummary, modifier: Modifier) {
         if (statusSummary.deletedCount > 0) {
             SummaryEntry(
                 count = statusSummary.deletedCount,
-                icon = Icons.Default.Delete,
+                icon = Res.drawable.delete_filled,
                 color = MaterialTheme.colors.deleteFile,
             )
         }
@@ -799,7 +796,7 @@ fun LogStatusSummary(statusSummary: StatusSummary, modifier: Modifier) {
         if (statusSummary.conflictingCount > 0) {
             SummaryEntry(
                 count = statusSummary.conflictingCount,
-                icon = Icons.Default.Warning,
+                icon = Res.drawable.warning,
                 color = MaterialTheme.colors.conflictFile,
             )
         }
@@ -808,7 +805,7 @@ fun LogStatusSummary(statusSummary: StatusSummary, modifier: Modifier) {
 
 @Composable
 fun SummaryEntry(
-    count: Int, icon: ImageVector, color: Color,
+    count: Int, icon: DrawableResource, color: Color,
 ) {
     Row(
         modifier = Modifier.padding(horizontal = 4.dp),
@@ -821,7 +818,7 @@ fun SummaryEntry(
         )
 
         Icon(
-            imageVector = icon, tint = color, contentDescription = null, modifier = Modifier.size(14.dp)
+            painter = painterResource(icon), tint = color, contentDescription = null, modifier = Modifier.size(14.dp)
         )
     }
 }
