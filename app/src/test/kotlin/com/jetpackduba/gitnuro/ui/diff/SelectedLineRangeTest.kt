@@ -48,3 +48,39 @@ class SelectedLineRangeTest {
         assertNull(findSelectedLineRange(lineList, "val x", anchorIndex = 99))
     }
 }
+
+class SelectedTextPieceTest {
+    private val lineList = listOf("foo bar", "x = foo", "    foo bar baz", "end")
+
+    @Test
+    fun `word inside a line`() {
+        assertEquals(listOf(SelectedTextPiece(0, 4, 7)), findSelectedTextPieceList(lineList, "bar", anchorIndex = 0))
+    }
+
+    @Test
+    fun `repeated text inside the line is ambiguous`() {
+        assertNull(findSelectedTextPieceList(listOf("a = a"), "a", anchorIndex = 0))
+    }
+
+    @Test
+    fun `several lines with partial edges`() {
+        val result = findSelectedTextPieceList(lineList, "bar\nx = foo\n    foo", anchorIndex = 1)
+
+        assertEquals(
+            listOf(SelectedTextPiece(0, 4, 7), SelectedTextPiece(1, 0, 7), SelectedTextPiece(2, 0, 7)),
+            result,
+        )
+    }
+
+    @Test
+    fun `selection ending with a line break needs a complete last line`() {
+        assertNull(findSelectedTextPieceList(lineList, "bar\nx\n", anchorIndex = 1))
+    }
+
+    @Test
+    fun `tabs are mapped back to the raw text`() {
+        assertEquals(1 to 4, displayedToRawRange("\tfoo", 4, 7))
+        assertEquals(0 to 4, displayedToRawRange("\tfoo", 0, 7))
+        assertEquals(1 to 4, displayedToRawRange("\tfoo", 2, 7))
+    }
+}
