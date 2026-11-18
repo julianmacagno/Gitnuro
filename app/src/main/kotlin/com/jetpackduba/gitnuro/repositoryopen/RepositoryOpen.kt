@@ -26,6 +26,7 @@ import com.jetpackduba.gitnuro.domain.models.RepositoryState
 import com.jetpackduba.gitnuro.domain.models.ui.SelectedItem
 import com.jetpackduba.gitnuro.domain.repositories.CloseableView
 import com.jetpackduba.gitnuro.extensions.handMouseClickable
+import com.jetpackduba.gitnuro.extensions.pageKeyScroll
 import com.jetpackduba.gitnuro.keybindings.KeybindingOption
 import com.jetpackduba.gitnuro.keybindings.matchesBinding
 import com.jetpackduba.gitnuro.ui.*
@@ -51,12 +52,17 @@ fun RepositoryOpenPage(
     val showHistory by repositoryOpenViewModel.showHistory.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
+    val isDiffShown = repositoryOpenViewModel.diffSelected.collectAsState().value?.entries?.count() == 1
     var showOpenPopup by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .focusRequester(focusRequester)
             .focusable(true)
+            .then(
+                if (isDiffShown) Modifier
+                else Modifier.pageKeyScroll { repositoryOpenViewModel.logState.value.verticalScrollState }
+            )
             .onPreviewKeyEvent {
                 when {
                     it.matchesBinding(KeybindingOption.PULL) -> {
