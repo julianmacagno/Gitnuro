@@ -21,7 +21,9 @@ import com.jetpackduba.gitnuro.domain.repositories.FailureSeverity
 import com.jetpackduba.gitnuro.domain.repositories.RecentRepositoriesRepository
 import com.jetpackduba.gitnuro.domain.repositories.RepositoryDataRepository
 import com.jetpackduba.gitnuro.domain.repositories.RepositoryStateRepository
+import com.jetpackduba.gitnuro.domain.usecases.AutoFetchAllUseCase
 import com.jetpackduba.gitnuro.domain.usecases.GetWorktreeUseCase
+import com.jetpackduba.gitnuro.domain.usecases.FilterValidRepositoriesUseCase
 import com.jetpackduba.gitnuro.domain.usecases.OpenRepositoryUseCase
 import com.jetpackduba.gitnuro.domain.usecases.SetRepositorySelectionStateToNoneUseCase
 import com.jetpackduba.gitnuro.domain.usecases.repositories.recent.RemoveRecentRepositoryUseCase
@@ -65,6 +67,7 @@ class RepositoryTabViewModel @AssistedInject constructor(
     private val tabScope: TabCoroutineScope,
     private val verticalSplitPaneConfig: VerticalSplitPaneConfig,
     private val openRepositoryUseCase: OpenRepositoryUseCase,
+    private val filterValidRepositoriesUseCase: FilterValidRepositoriesUseCase,
     private val repositoryDataRepository: RepositoryDataRepository,
     private val repositoryStateRepository: RepositoryStateRepository,
     private val setRepositorySelectionStateToNoneUseCase: SetRepositorySelectionStateToNoneUseCase,
@@ -72,6 +75,7 @@ class RepositoryTabViewModel @AssistedInject constructor(
     private val removeRecentRepositoryUseCase: RemoveRecentRepositoryUseCase,
     private val getWorktreeUseCase: GetWorktreeUseCase,
     private val appViewModel: AppViewModel,
+    private val autoFetchAllUseCase: AutoFetchAllUseCase,
     @Assisted private val initialPath: String?,
     updatesRepository: UpdatesRepository,
 ) : IVerticalSplitPaneConfig by verticalSplitPaneConfig,
@@ -172,6 +176,20 @@ class RepositoryTabViewModel @AssistedInject constructor(
 
     override val extraInfo: StateFlow<String?> = repositoryPath
 
+    override val isBackgroundTaskRunning: StateFlow<Boolean> = repositoryStateRepository.isBackgroundTaskRunning
+
+    fun autoFetchAll() {
+        viewModelScope.launch { autoFetchAllUseCase() }
+    }
+
+    val persistedPath: String?
+        get() = when (val state = repositorySelectionState.value) {
+            is RepositorySelectionState.Open -> state.path
+            is RepositorySelectionState.Opening -> state.path
+            RepositorySelectionState.Unknown -> initialPath
+            RepositorySelectionState.None -> null
+        }
+
     val backStack = NavBackStack<Screen>(
         if (initialPath == null) {
             Screen.Welcome
@@ -193,6 +211,19 @@ class RepositoryTabViewModel @AssistedInject constructor(
             printLog(TAG, "Trying to open repository ${directory}")
 
             openRepositoryUseCase(directory)
+        }
+    }
+
+    /**
+     * Opens the repository in this tab, unless another tab of the active group already has it open: that one is selected.
+     */
+    fun openRepositoryOrSelectExisting(directory: String) {
+        val openTab = appViewModel.findOpenTab(directory)
+
+        if (openTab != null) {
+            appViewModel.selectTab(openTab)
+        } else {
+            openRepository(directory)
         }
     }
 
@@ -235,6 +266,21 @@ class RepositoryTabViewModel @AssistedInject constructor(
         val latestDirectoryOpened = recentRepositories.value.firstOrNull()
 
         return openFilePickerUseCase(PickerType.DIRECTORIES, latestDirectoryOpened)
+    }
+
+    /**
+     * Opens the first picked repository in this tab and the rest in new tabs.
+     */
+    fun openRepositoriesFromPicker() {
+        val latestDirectoryOpened = recentRepositories.value.firstOrNull()
+        val picked = openFilePickerUseCase.pickMultiple(PickerType.DIRECTORIES, latestDirectoryOpened)
+
+        viewModelScope.launch {
+            val directories = filterValidRepositoriesUseCase(picked)
+
+            directories.firstOrNull()?.let { openRepositoryOrSelectExisting(it) }
+            directories.drop(1).forEach { appViewModel.addNewTabFromPath(it, selectTab = false) }
+        }
     }
 
     fun initLocalRepository(dir: String) = viewModelScope.launch {

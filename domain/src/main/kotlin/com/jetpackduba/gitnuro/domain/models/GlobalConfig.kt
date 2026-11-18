@@ -7,6 +7,7 @@ sealed interface GlobalConfig {
     data class LinesHeight(val value: LinesHeightType?) : GlobalConfig
     data class PullWithRebase(val value: Boolean) : GlobalConfig
     data class PushWithLease(val value: Boolean) : GlobalConfig
+    data class AutoFetchAll(val value: Boolean) : GlobalConfig
     data class FastForwardMerge(val value: Boolean) : GlobalConfig
     data class AutoStashOnMerge(val value: Boolean) : GlobalConfig
     data class UseProxy(val value: Boolean) : GlobalConfig

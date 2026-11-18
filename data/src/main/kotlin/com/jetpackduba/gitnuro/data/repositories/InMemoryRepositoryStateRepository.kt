@@ -13,6 +13,8 @@ import javax.inject.Inject
 class InMemoryRepositoryStateRepository @Inject constructor() : RepositoryStateRepository {
     override val currentTask: StateFlow<TaskType?>
         field = MutableStateFlow(null)
+    override val isBackgroundTaskRunning: StateFlow<Boolean>
+        field = MutableStateFlow(false)
     override val completedTasks: StateFlow<List<CompletedTask>>
         field = MutableStateFlow(emptyList())
     override val lastOperationTimestamp: Flow<Long> = completedTasks.map {
@@ -25,11 +27,15 @@ class InMemoryRepositoryStateRepository @Inject constructor() : RepositoryStateR
         try {
             if (isForegroundTask) {
                 currentTask.value = taskType
+            } else {
+                isBackgroundTaskRunning.value = true
             }
             return block()
         } finally {
             if (isForegroundTask) {
                 currentTask.value = null
+            } else {
+                isBackgroundTaskRunning.value = false
             }
         }
     }

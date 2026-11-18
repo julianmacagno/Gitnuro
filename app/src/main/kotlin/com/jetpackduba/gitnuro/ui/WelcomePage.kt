@@ -70,11 +70,7 @@ fun WelcomePage(
         onShowCloneDialog = onShowCloneDialog,
         onShowSettings = onShowSettings,
         onOpenRepository = {
-            val repo = repositoryTabViewModel.openDirectoryPicker()
-
-            if (repo != null) {
-                repositoryTabViewModel.openRepository(repo)
-            }
+            repositoryTabViewModel.openRepositoriesFromPicker()
         },
         onStartRepository = {
             val dir = repositoryTabViewModel.openDirectoryPicker()
@@ -83,7 +79,7 @@ fun WelcomePage(
                 repositoryTabViewModel.initLocalRepository(dir)
             }
         },
-        onOpenKnownRepository = { repositoryTabViewModel.openRepository(it) },
+        onOpenKnownRepository = { repositoryTabViewModel.openRepositoryOrSelectExisting(it) },
         onOpenUrlInBrowser = { repositoryTabViewModel.openUrlInBrowser(it) },
         onRemoveRepositoryFromRecent = { repositoryTabViewModel.removeRepositoryFromRecent(it) },
         onShowAppInfo = onShowAppInfo,
@@ -252,7 +248,7 @@ fun HomeButtons(
             title = stringResource(Res.string.home_button_source_code),
             painter = painterResource(Res.drawable.code),
             onClick = {
-                onOpenUrlInBrowser("https://github.com/JetpackDuba/Gitnuro")
+                onOpenUrlInBrowser(AppConstants.REPOSITORY_URL)
             }
         )
 
@@ -260,7 +256,7 @@ fun HomeButtons(
             title = stringResource(Res.string.home_button_report_bug),
             painter = painterResource(Res.drawable.bug),
             onClick = {
-                onOpenUrlInBrowser("https://github.com/JetpackDuba/Gitnuro/issues")
+                onOpenUrlInBrowser("${AppConstants.REPOSITORY_URL}/issues")
             }
         )
 

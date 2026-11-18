@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,13 +28,14 @@ import com.jetpackduba.gitnuro.theme.linesHeight
 import com.jetpackduba.gitnuro.theme.onBackgroundSecondary
 import com.jetpackduba.gitnuro.ui.context_menu.ContextMenu
 import com.jetpackduba.gitnuro.ui.context_menu.ContextMenuElement
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 private const val TREE_START_PADDING = 12
 
 @Composable
 fun FileEntry(
-    icon: ImageVector,
+    icon: DrawableResource,
     iconColor: Color,
     parentDirectoryPath: String,
     fileName: String,
@@ -47,7 +47,7 @@ fun FileEntry(
     trailingAction: (@Composable BoxScope.(isHovered: Boolean) -> Unit)?,
 ) {
     FileEntry(
-        icon = rememberVectorPainter(icon),
+        icon = painterResource(icon),
         iconColor = iconColor,
         parentDirectoryPath = parentDirectoryPath,
         fileName = fileName,

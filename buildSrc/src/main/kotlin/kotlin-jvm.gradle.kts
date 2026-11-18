@@ -13,6 +13,8 @@ kotlin {
     // Use a specific Java version to make it easier to work in different environments.
     jvmToolchain(25)
     compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xjdk-release=17")
         freeCompilerArgs.add("-Xexplicit-backing-fields")
         freeCompilerArgs.add("-Xcontext-parameters")
     }
@@ -30,4 +32,8 @@ tasks.withType<Test>().configureEach {
             TestLogEvent.SKIPPED
         )
     }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(17)
 }

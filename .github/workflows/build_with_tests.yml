@@ -1,5 +1,5 @@
 # Workflow to run with every commit added to the main branch.
-# Windows, Mac-os and LibSSH are not built to avoid wasting CI minutes, as it takes quite some time.
+# Windows and Mac-os are not built to avoid wasting CI minutes, as it takes quite some time.
 
 name: Test Build
 
@@ -18,7 +18,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:

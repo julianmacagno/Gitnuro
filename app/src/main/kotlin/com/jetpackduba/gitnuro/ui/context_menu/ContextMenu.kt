@@ -385,7 +385,9 @@ sealed class ContextMenuElement(
 
 
 @ExperimentalFoundationApi
-class AppPopupMenu : TextContextMenu {
+class AppPopupMenu(
+    private val getExtraItemList: () -> List<ContextMenuElement> = { emptyList() },
+) : TextContextMenu {
     @Composable
     override fun Area(
         textManager: TextContextMenu.TextManager,
@@ -394,7 +396,7 @@ class AppPopupMenu : TextContextMenu {
     ) {
         val localization = LocalLocalization.current
         val items = {
-            listOfNotNull(
+            val defaultItemList = listOfNotNull(
                 textManager.copy?.let {
                     ContextMenuElement.ContextTextEntry(
                         label = localization.copy,
@@ -424,6 +426,10 @@ class AppPopupMenu : TextContextMenu {
                     )
                 },
             )
+
+            val extraItemList = getExtraItemList()
+
+            if (extraItemList.isEmpty()) defaultItemList else defaultItemList + ContextMenuElement.ContextSeparator + extraItemList
         }
         CompositionLocalProvider(
             LocalContextMenuRepresentation provides AppContextMenuRepresentation()

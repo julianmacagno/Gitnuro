@@ -66,6 +66,7 @@ class UseCaseExecutor @Inject constructor(
                 taskType,
                 dataToRefresh,
                 refreshEvenIfFailed,
+                isForegroundTask,
                 block,
             )
         }
@@ -83,6 +84,7 @@ class UseCaseExecutor @Inject constructor(
                 taskType,
                 dataToRefresh,
                 refreshEvenIfFailed,
+                isForegroundTask,
                 block,
             )
         }
@@ -91,7 +93,8 @@ class UseCaseExecutor @Inject constructor(
     private suspend fun <T> executeTaskWithErrorHandling(
         taskType: TaskType,
         dataToRefresh: Array<DataToRefresh>,
-        refreshEvenIfFailed: Boolean = false,
+        refreshEvenIfFailed: Boolean,
+        isForegroundTask: Boolean,
         block: suspend EitherContext<AppError>.(String) -> Either<T, AppError>,
     ): Either<T, AppError> {
         return executeTask(
@@ -99,6 +102,8 @@ class UseCaseExecutor @Inject constructor(
             refreshEvenIfFailed,
             block
         ).apply {
+            if (!isForegroundTask) return@apply
+
             when (this) {
                 is Either.Err -> repositoryStateRepository.addCompletedTaskFailed(
                     taskType,

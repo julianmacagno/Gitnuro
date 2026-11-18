@@ -40,6 +40,7 @@ import com.jetpackduba.gitnuro.domain.models.*
 import com.jetpackduba.gitnuro.domain.repositories.CloseableView
 import com.jetpackduba.gitnuro.extensions.handMouseClickable
 import com.jetpackduba.gitnuro.extensions.handOnHover
+import com.jetpackduba.gitnuro.extensions.pageKeyScroll
 import com.jetpackduba.gitnuro.extensions.toStringWithSpaces
 import com.jetpackduba.gitnuro.repositoryopen.RepositoryOpenViewModel
 import com.jetpackduba.gitnuro.theme.*
@@ -106,6 +107,7 @@ fun DiffPane(
             .fillMaxSize()
             .focusable(true)
             .focusRequester(focusRequester)
+            .pageKeyScroll { viewModel.lazyListState.value }
             .onFocusChanged {
                 if (it.isFocused) {
                     viewModel.addCloseableView(CloseableView.DIFF)
@@ -163,7 +165,18 @@ fun DiffPane(
                         },
                         onDiscardLine = { entry, hunk, line ->
                             viewModel.discardHunkLine(entry, hunk, line)
-                        }
+                        },
+                        onApplyLineList = { entry, hunkLineList ->
+                            if (diffType is DiffType.UncommittedDiff) {
+                                if (diffType.entryType == EntryType.STAGED)
+                                    viewModel.unstageHunkLineList(entry, hunkLineList)
+                                else
+                                    viewModel.stageHunkLineList(entry, hunkLineList)
+                            }
+                        },
+                        onDiscardSelectedText = { entry, selectedLineTextList ->
+                            viewModel.discardSelectedText(entry, selectedLineTextList)
+                        },
                     )
 
                     is DiffResult.Text -> HunkUnifiedTextDiff(
@@ -191,7 +204,18 @@ fun DiffPane(
                         },
                         onDiscardLine = { entry, hunk, line ->
                             viewModel.discardHunkLine(entry, hunk, line)
-                        }
+                        },
+                        onApplyLineList = { entry, hunkLineList ->
+                            if (diffType is DiffType.UncommittedDiff) {
+                                if (diffType.entryType == EntryType.STAGED)
+                                    viewModel.unstageHunkLineList(entry, hunkLineList)
+                                else
+                                    viewModel.stageHunkLineList(entry, hunkLineList)
+                            }
+                        },
+                        onDiscardSelectedText = { entry, selectedLineTextList ->
+                            viewModel.discardSelectedText(entry, selectedLineTextList)
+                        },
                     )
 
                     is DiffResult.NonText -> {
@@ -456,14 +480,38 @@ fun HunkUnifiedTextDiff(
     onUnStageLine: (DiffEntry, Hunk, Line) -> Unit,
     onResetHunk: (DiffEntry, Hunk) -> Unit,
     onDiscardLine: (DiffEntry, Hunk, Line) -> Unit,
+    onApplyLineList: (DiffEntry, List<Pair<Hunk, List<Line>>>) -> Unit,
+    onDiscardSelectedText: (DiffEntry, List<SelectedLineText>) -> Unit,
 ) {
     val hunks = diffResult.hunks
     var selectedText by remember { mutableStateOf(AnnotatedString("")) }
 
+    val displayedLineList = remember(hunks) { hunks.flatMap { hunk -> hunk.lines.map { hunk to it } } }
+    val pressedLine = remember(hunks) { arrayOfNulls<Line>(1) }
+
     CompositionLocalProvider(
-        LocalTextContextMenu provides SelectionAwareTextContextMenu {
-            selectedText = it
-        }
+        LocalTextContextMenu provides SelectionAwareTextContextMenu(
+            onIsTextSelected = { selectedText = it },
+            getExtraItemList = { text ->
+                val anchorIndex = displayedLineList.indexOfFirst { it.second == pressedLine[0] }
+
+                stageSelectedLineItemList(
+                    diffType = diffType,
+                    canUseHunkActions = canUseHunkActions,
+                    selectedText = text,
+                    displayedLineList = displayedLineList,
+                    anchorIndex = anchorIndex,
+                    onApply = { onApplyLineList(diffResult.diffEntry, it) },
+                ) + discardSelectedTextItemList(
+                    diffType = diffType,
+                    canUseHunkActions = canUseHunkActions,
+                    selectedText = text,
+                    displayedLineList = displayedLineList,
+                    anchorIndex = anchorIndex,
+                    onApply = { onDiscardSelectedText(diffResult.diffEntry, it) },
+                )
+            },
+        )
     ) {
         SelectionContainer {
             ScrollableLazyColumn(
@@ -508,6 +556,7 @@ fun HunkUnifiedTextDiff(
                                         line,
                                     )
                                 },
+                                modifier = Modifier.onPointerEvent(PointerEventType.Press) { pressedLine[0] = line },
                             )
                         }
                     }
@@ -529,8 +578,19 @@ fun HunkSplitTextDiff(
     onResetHunk: (DiffEntry, Hunk) -> Unit,
     onUnStageLine: (DiffEntry, Hunk, Line) -> Unit,
     onDiscardLine: (DiffEntry, Hunk, Line) -> Unit,
+    onApplyLineList: (DiffEntry, List<Pair<Hunk, List<Line>>>) -> Unit,
+    onDiscardSelectedText: (DiffEntry, List<SelectedLineText>) -> Unit,
 ) {
     val hunks = diffResult.hunks
+
+    val oldLineList = remember(hunks) {
+        hunks.flatMap { splitHunk -> splitHunk.lines.mapNotNull { (old, _) -> old?.let { splitHunk.sourceHunk to it } } }
+    }
+    val newLineList = remember(hunks) {
+        hunks.flatMap { splitHunk -> splitHunk.lines.mapNotNull { (_, new) -> new?.let { splitHunk.sourceHunk to it } } }
+    }
+    val pressedLine = remember(hunks) { arrayOfNulls<Line>(1) }
+    val pressedSide = remember(hunks) { arrayOf(SelectableSide.NEW) }
 
     /**
      * Disables selection in one side when the other is being selected
@@ -540,9 +600,30 @@ fun HunkSplitTextDiff(
     var selectedText by remember { mutableStateOf(AnnotatedString("")) }
 
     CompositionLocalProvider(
-        LocalTextContextMenu provides SelectionAwareTextContextMenu {
-            selectedText = it
-        }
+        LocalTextContextMenu provides SelectionAwareTextContextMenu(
+            onIsTextSelected = { selectedText = it },
+            getExtraItemList = { text ->
+                val displayedLineList = if (pressedSide[0] == SelectableSide.OLD) oldLineList else newLineList
+
+                val anchorIndex = displayedLineList.indexOfFirst { it.second == pressedLine[0] }
+
+                stageSelectedLineItemList(
+                    diffType = diffType,
+                    canUseHunkActions = canUseHunkActions,
+                    selectedText = text,
+                    displayedLineList = displayedLineList,
+                    anchorIndex = anchorIndex,
+                    onApply = { onApplyLineList(diffResult.diffEntry, it) },
+                ) + discardSelectedTextItemList(
+                    diffType = diffType,
+                    canUseHunkActions = canUseHunkActions,
+                    selectedText = text,
+                    displayedLineList = displayedLineList,
+                    anchorIndex = anchorIndex,
+                    onApply = { onDiscardSelectedText(diffResult.diffEntry, it) },
+                )
+            },
+        )
     ) {
         SelectionContainer {
             ScrollableLazyColumn(
@@ -587,7 +668,11 @@ fun HunkSplitTextDiff(
                             },
                             onDiscardLine = { line ->
                                 onDiscardLine(diffResult.diffEntry, splitHunk.sourceHunk, line)
-                            }
+                            },
+                            onLinePressed = { line, side ->
+                                pressedLine[0] = line
+                                pressedSide[0] = side
+                            },
                         )
                     }
                 }
@@ -615,6 +700,7 @@ fun SplitDiffLine(
     onChangeSelectableSide: (SelectableSide) -> Unit,
     onActionTriggered: (Line) -> Unit,
     onDiscardLine: (Line) -> Unit,
+    onLinePressed: (Line, SelectableSide) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -634,6 +720,7 @@ fun SplitDiffLine(
             onActionTriggered = { if (oldLine != null) onActionTriggered(oldLine) },
             selectedText = selectedText,
             onDiscardLine = onDiscardLine,
+            onLinePressed = onLinePressed,
         )
 
         Box(
@@ -656,6 +743,7 @@ fun SplitDiffLine(
             onActionTriggered = { if (newLine != null) onActionTriggered(newLine) },
             selectedText = selectedText,
             onDiscardLine = onDiscardLine,
+            onLinePressed = onLinePressed,
         )
 
     }
@@ -675,6 +763,7 @@ fun SplitDiffLineSide(
     onChangeSelectableSide: (SelectableSide) -> Unit,
     onActionTriggered: () -> Unit,
     onDiscardLine: (Line) -> Unit,
+    onLinePressed: (Line, SelectableSide) -> Unit,
 ) {
     var pressedAndMoved by remember(line) { mutableStateOf(Pair(false, false)) }
     var movesCount by remember(line) { mutableStateOf(0) }
@@ -682,6 +771,7 @@ fun SplitDiffLineSide(
     Box(
         modifier = modifier
             .onPointerEvent(PointerEventType.Press) {
+                if (line != null) onLinePressed(line, lineSelectableSide)
                 movesCount = 0
                 pressedAndMoved = pressedAndMoved.copy(first = true, second = false)
                 onChangeSelectableSide(SelectableSide.BOTH)
@@ -1092,6 +1182,7 @@ fun DiffLine(
     line: Line,
     diffType: DiffType,
     onActionTriggered: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val backgroundColor = when (line.lineType) {
         LineType.ADDED -> MaterialTheme.colors.diffLineAdded
@@ -1100,7 +1191,7 @@ fun DiffLine(
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .background(backgroundColor)
             .height(IntrinsicSize.Min),
     ) {
@@ -1310,5 +1401,89 @@ fun formatDiff(
         commentColor = commentColor,
         keywordColor = keywordColor,
         annotationColor = annotationColor,
+    )
+}
+
+private fun Line.displayedText(): String {
+    val diffs = textDiffed?.diffs ?: return text.replaceTabs().removeLineDelimiters()
+
+    return diffs.joinToString("") { it.text.replaceTabs().removeLineDelimiters() }
+}
+
+private fun stageSelectedLineItemList(
+    diffType: DiffType,
+    canUseHunkActions: Boolean,
+    selectedText: AnnotatedString,
+    displayedLineList: List<Pair<Hunk, Line>>,
+    anchorIndex: Int,
+    onApply: (List<Pair<Hunk, List<Line>>>) -> Unit,
+): List<ContextMenuElement> {
+    if (!canUseHunkActions || diffType !is DiffType.UncommittedDiff || diffType.statusType != StatusType.MODIFIED) {
+        return emptyList()
+    }
+
+    val range = findSelectedLineRange(displayedLineList.map { it.second.displayedText() }, selectedText.text, anchorIndex)
+        ?: return emptyList()
+
+    val hunkLineList = displayedLineList
+        .slice(range)
+        .filter { (_, line) -> line.lineType != LineType.CONTEXT }
+        .groupBy({ it.first }, { it.second })
+        .toList()
+
+    if (hunkLineList.isEmpty()) return emptyList()
+
+    val isStaged = diffType.entryType == EntryType.STAGED
+
+    return listOf(
+        ContextMenuElement.ContextTextEntry(
+            label = if (isStaged) "Unstage selected lines" else "Stage selected lines",
+            icon = { painterResource(if (isStaged) Res.drawable.remove else Res.drawable.redo) },
+            onClick = { onApply(hunkLineList) },
+        )
+    )
+}
+
+
+private fun discardSelectedTextItemList(
+    diffType: DiffType,
+    canUseHunkActions: Boolean,
+    selectedText: AnnotatedString,
+    displayedLineList: List<Pair<Hunk, Line>>,
+    anchorIndex: Int,
+    onApply: (List<SelectedLineText>) -> Unit,
+): List<ContextMenuElement> {
+    if (
+        !canUseHunkActions ||
+        diffType !is DiffType.UncommittedDiff ||
+        diffType.statusType != StatusType.MODIFIED ||
+        diffType.entryType != EntryType.UNSTAGED
+    ) {
+        return emptyList()
+    }
+
+    val pieceList = findSelectedTextPieceList(
+        displayedLineList.map { it.second.displayedText() },
+        selectedText.text,
+        anchorIndex,
+    ) ?: return emptyList()
+
+    val selectedLineTextList = pieceList.mapNotNull { piece ->
+        val line = displayedLineList[piece.lineIndex].second
+
+        if (line.lineType != LineType.ADDED) return@mapNotNull null
+
+        displayedToRawRange(line.text.removeLineDelimiters(), piece.start, piece.end)
+            ?.let { (start, end) -> SelectedLineText(line, start, end) }
+    }
+
+    if (selectedLineTextList.isEmpty()) return emptyList()
+
+    return listOf(
+        ContextMenuElement.ContextTextEntry(
+            label = "Discard selected text",
+            icon = { painterResource(Res.drawable.delete) },
+            onClick = { onApply(selectedLineTextList) },
+        )
     )
 }

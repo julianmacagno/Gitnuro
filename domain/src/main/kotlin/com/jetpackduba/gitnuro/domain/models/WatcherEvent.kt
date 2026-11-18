@@ -1,6 +1,6 @@
 package com.jetpackduba.gitnuro.domain.models
 
-import com.jetpackduba.gitnuro.FileChanged
+import com.jetpackduba.gitnuro.domain.models.FileChanged
 
 sealed interface WatcherEvent {
     data class WatchInitError(val code: Int) : WatcherEvent

@@ -47,7 +47,39 @@ fun AppInfoDialog(
                         )
 
                         Text(
-                            "Gitnuro has been possible thanks to the following open source projects:",
+                            "GitIA is an unofficial, enhanced, AI-developed fork of Gitnuro, modified since November 2026. Not affiliated with or " +
+                                "endorsed by the original author.\n\n" +
+                                "Gitnuro was created by Abdelilah El Aissaoui (JetpackDuba) and contributors. " +
+                                "Thank you for building and sharing it.\n\n" +
+                                "This program is free software under the GNU General Public License v3.0 and comes " +
+                                "with ABSOLUTELY NO WARRANTY. You are welcome to redistribute it under its terms.",
+                            style = MaterialTheme.typography.body1,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+
+                        TextLink(
+                            text = "Original project",
+                            url = AppConstants.UPSTREAM_URL,
+                            modifier = Modifier.padding(top = 8.dp),
+                            onClick = { onOpenUrlInBrowser(AppConstants.UPSTREAM_URL) }
+                        )
+
+                        TextLink(
+                            text = "Sponsor the original author",
+                            url = AppConstants.UPSTREAM_SPONSOR_URL,
+                            modifier = Modifier.padding(top = 8.dp),
+                            onClick = { onOpenUrlInBrowser(AppConstants.UPSTREAM_SPONSOR_URL) }
+                        )
+
+                        TextLink(
+                            text = "GPLv3 license",
+                            url = AppConstants.GPL_URL,
+                            modifier = Modifier.padding(top = 8.dp),
+                            onClick = { onOpenUrlInBrowser(AppConstants.GPL_URL) }
+                        )
+
+                        Text(
+                            "${AppConstants.APP_NAME} has been possible thanks to the following open source projects:",
                             style = MaterialTheme.typography.body1,
                             modifier = Modifier.padding(vertical = 16.dp)
                         )

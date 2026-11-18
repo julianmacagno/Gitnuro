@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
@@ -26,8 +28,6 @@ import com.jetpackduba.gitnuro.app.generated.resources.Res
 import com.jetpackduba.gitnuro.app.generated.resources.logo
 import com.jetpackduba.gitnuro.avatarproviders.GravatarAvatarProvider
 import com.jetpackduba.gitnuro.avatarproviders.NoneAvatarProvider
-import com.jetpackduba.gitnuro.common.OS
-import com.jetpackduba.gitnuro.common.currentOs
 import com.jetpackduba.gitnuro.common.systemSeparator
 import com.jetpackduba.gitnuro.data.DataStoreFilesProvider
 import com.jetpackduba.gitnuro.data.git.signers.AppGpgSigner
@@ -50,6 +50,7 @@ import com.jetpackduba.gitnuro.theme.ColorsScheme
 import com.jetpackduba.gitnuro.theme.onBackgroundSecondary
 import com.jetpackduba.gitnuro.ui.AppTab
 import com.jetpackduba.gitnuro.ui.AppViewModel
+import com.jetpackduba.gitnuro.ui.components.TabGroupSelector
 import com.jetpackduba.gitnuro.ui.components.TabsRow
 import com.jetpackduba.gitnuro.ui.components.TabInformation
 import com.jetpackduba.gitnuro.ui.context_menu.AppPopupMenu
@@ -62,7 +63,6 @@ import org.eclipse.jgit.lib.Signers
 import org.eclipse.jgit.util.LfsFactory
 import org.jetbrains.compose.resources.painterResource
 import java.io.File
-import java.io.FileOutputStream
 import java.nio.file.Paths
 import javax.inject.Inject
 
@@ -115,7 +115,6 @@ class App @Inject constructor(
 
     @OptIn(ExperimentalFoundationApi::class)
     suspend fun start(args: Array<String>) {
-        initNativeDependencies()
         logsRepository.initLogging()
         observeAndApplyProxySettingsUseCase()
         dataStoreFilesProvider.initDataStoreDirPath()
@@ -210,6 +209,14 @@ class App @Inject constructor(
                 state = windowState,
                 icon = painterResource(Res.drawable.logo),
             ) {
+                val windowInfo = LocalWindowInfo.current
+
+                LaunchedEffect(currentTab) {
+                    snapshotFlow { windowInfo.isWindowFocused }.collect { isFocused ->
+                        if (isFocused) currentTab?.data?.autoFetchAll()
+                    }
+                }
+
                 val compositionValues: MutableList<ProvidedValue<*>> =
                     mutableListOf(LocalTextContextMenu provides AppPopupMenu())
 
@@ -240,29 +247,6 @@ class App @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun initNativeDependencies() {
-        val gitnuroRsName = when (currentOs) {
-            OS.LINUX -> "libgitnuro_rs.so"
-            OS.WINDOWS -> "gitnuro_rs.dll"
-            OS.MAC -> "libgitnuro_rs.dylib"
-            else -> throw Exception("OS not supported")
-        }
-
-        val gitnuroRsInputStream = javaClass.getResourceAsStream("/$gitnuroRsName")
-
-        gitnuroRsInputStream?.use { inputStream ->
-            val tempDir = tempFilesManager.tempDir()
-            val gitnuroRsFile = File(tempDir, gitnuroRsName)
-            val outputStream = FileOutputStream(gitnuroRsFile)
-
-            inputStream.copyTo(outputStream)
-            outputStream.flush()
-            outputStream.close()
-
-            System.load(gitnuroRsFile.absolutePath)
-        } ?: throw Exception("GitnuroRs native dependency not found")
     }
 
     private fun initProxySettings() {
@@ -316,6 +300,16 @@ class App @Inject constructor(
                                 true
                             }
 
+                            it.matchesBinding(KeybindingOption.CHANGE_GROUP_LEFT) -> {
+                                appViewModel.switchToAdjacentGroup(-1)
+                                true
+                            }
+
+                            it.matchesBinding(KeybindingOption.CHANGE_GROUP_RIGHT) -> {
+                                appViewModel.switchToAdjacentGroup(1)
+                                true
+                            }
+
                             else -> false
                         }
                     }
@@ -345,11 +339,23 @@ class App @Inject constructor(
         onAddedTab: () -> Unit,
         onCloseTab: (TabInformation<RepositoryTabViewModel>) -> Unit,
     ) {
+        val groups by appViewModel.groups.collectAsState()
+        val activeGroup by appViewModel.activeGroup.collectAsState()
+
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            TabGroupSelector(
+                groups = groups.keys.toList(),
+                activeGroup = activeGroup,
+                onSwitchGroup = { appViewModel.switchGroup(it) },
+                onCreateGroup = { appViewModel.createGroup(it) },
+                onRenameGroup = { old, new -> appViewModel.renameGroup(old, new) },
+                onDeleteGroup = { appViewModel.deleteGroup(it) },
+            )
+
             TabsRow(
                 tabs = tabsInformationList,
                 defaultTabName = NEW_TAB_DEFAULT_NAME,

@@ -182,6 +182,8 @@ fun HistoryContentLoaded(
                             onResetHunk = { _, _ -> },
                             onUnStageLine = { _, _, _ -> },
                             onDiscardLine = { _, _, _ -> },
+                            onApplyLineList = { _, _ -> },
+                            onDiscardSelectedText = { _, _ -> },
                         )
                     }
 
@@ -196,6 +198,8 @@ fun HistoryContentLoaded(
                             onResetHunk = { _, _ -> },
                             onUnStageLine = { _, _, _ -> },
                             onDiscardLine = { _, _, _ -> },
+                            onApplyLineList = { _, _ -> },
+                            onDiscardSelectedText = { _, _ -> },
                         )
                     }
 

@@ -25,6 +25,7 @@ import com.jetpackduba.gitnuro.domain.repositories.*
 import com.jetpackduba.gitnuro.domain.services.GlobalSettingsService
 import com.jetpackduba.gitnuro.domain.usecases.*
 import com.jetpackduba.gitnuro.extensions.stateIn
+import com.jetpackduba.gitnuro.domain.usecases.FilterValidRepositoriesUseCase
 import com.jetpackduba.gitnuro.system.OpenFilePickerUseCase
 import com.jetpackduba.gitnuro.system.OpenUrlInBrowserUseCase
 import com.jetpackduba.gitnuro.system.PickerType
@@ -84,6 +85,7 @@ class RepositoryOpenViewModel @Inject constructor(
     private val historyViewModelProvider: Provider<HistoryViewModel>,
     private val recentRepositoriesRepository: RecentRepositoriesRepository,
     private val openFilePickerUseCase: OpenFilePickerUseCase,
+    private val filterValidRepositoriesUseCase: FilterValidRepositoriesUseCase,
     private val openUrlInBrowserUseCase: OpenUrlInBrowserUseCase,
     private val appViewModel: AppViewModel,
     private val tabScope: TabCoroutineScope,
@@ -122,6 +124,7 @@ class RepositoryOpenViewModel @Inject constructor(
     private val unstageHunkLineUseCase: UnstageHunkLineUseCase,
     private val resetHunkUseCase: ResetHunkUseCase,
     private val discardHunkLineUseCase: DiscardHunkLineUseCase,
+    private val discardSelectedTextUseCase: DiscardSelectedTextUseCase,
     private val statusStageUseCase: StatusStageUseCase,
     private val statusUnstageUseCase: StatusUnstageUseCase,
     private val openFileInExternalAppUseCase: OpenFileInExternalAppUseCase,
@@ -656,10 +659,19 @@ class RepositoryOpenViewModel @Inject constructor(
         refreshDataUseCase(DataToRefresh.ALL)
     }
 
-    fun openDirectoryPicker(): String? {
+    /**
+     * The first picked repository is opened with [onOpenAnotherRepository] (replaces this tab), the rest in new tabs.
+     */
+    fun openRepositoriesFromPicker(onOpenAnotherRepository: (String) -> Unit) {
         val latestDirectoryOpened = lastLoadedTabs.value.lastOrNull()
+        val picked = openFilePickerUseCase.pickMultiple(PickerType.DIRECTORIES, latestDirectoryOpened)
 
-        return openFilePickerUseCase(PickerType.DIRECTORIES, latestDirectoryOpened)
+        viewModelScope.launch {
+            val directories = filterValidRepositoriesUseCase(picked)
+
+            directories.firstOrNull()?.let { onOpenAnotherRepository(it) }
+            directories.drop(1).forEach { appViewModel.addNewTabFromPath(it, selectTab = false) }
+        }
     }
 
     val update: StateFlow<Update?> = updatesRepository.hasUpdatesFlow.stateIn(null)
@@ -1029,15 +1041,26 @@ class RepositoryOpenViewModel @Inject constructor(
         settings.setConfiguration(GlobalConfig.DiffDisplayFullFile(isDisplayFullFile))
     }
 
-    fun stageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) = stageHunkLineUseCase(entry, hunk, line)
+    fun stageHunkLineList(entry: DiffEntry, hunkLineList: List<Pair<Hunk, List<Line>>>) =
+        stageHunkLineUseCase(entry, hunkLineList)
 
-    fun unstageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) = unstageHunkLineUseCase(entry, hunk, line)
+    fun unstageHunkLineList(entry: DiffEntry, hunkLineList: List<Pair<Hunk, List<Line>>>) =
+        unstageHunkLineUseCase(entry, hunkLineList)
+
+    fun stageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) =
+        stageHunkLineList(entry, listOf(hunk to listOf(line)))
+
+    fun unstageHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) =
+        unstageHunkLineList(entry, listOf(hunk to listOf(line)))
 
     fun openFileWithExternalApp(path: String) {
         openFileInExternalAppUseCase(path)
     }
 
     fun discardHunkLine(entry: DiffEntry, hunk: Hunk, line: Line) = discardHunkLineUseCase(entry, hunk, line)
+
+    fun discardSelectedText(entry: DiffEntry, selectedLineTextList: List<SelectedLineText>) =
+        discardSelectedTextUseCase(entry, selectedLineTextList)
 
     fun openSubmodule(path: String) {
         val repositoryPath = repositoryDataRepository.repositoryPath

@@ -22,18 +22,27 @@ class OpenFilePickerUseCase @Inject constructor(
      */
     private val shellManager: ShellManager,
 ) {
-    operator fun invoke(pickerType: PickerType, basePath: String?): String? {
+    operator fun invoke(pickerType: PickerType, basePath: String?): String? =
+        pick(pickerType, basePath, multiple = false).firstOrNull()
+
+    /**
+     * Same as [invoke] but allows selecting several entries. Returns an empty list if the dialog is cancelled.
+     */
+    fun pickMultiple(pickerType: PickerType, basePath: String?): List<String> =
+        pick(pickerType, basePath, multiple = true)
+
+    private fun pick(pickerType: PickerType, basePath: String?, multiple: Boolean): List<String> {
         val isLinux = currentOs.isLinux()
         val isMac = currentOs.isMac()
 
         return if (isLinux) {
-            openDirectoryDialogLinux(pickerType)
+            openDirectoryDialogLinux(pickerType, multiple)
         } else
-            openJvmDialog(pickerType, basePath, false, isMac)
+            openJvmDialog(pickerType, basePath, false, isMac, multiple)
     }
 
-    private fun openDirectoryDialogLinux(pickerType: PickerType): String? {
-        var dirToOpen: String? = null
+    private fun openDirectoryDialogLinux(pickerType: PickerType, multiple: Boolean): List<String> {
+        var dirsToOpen: List<String> = emptyList()
 
         val checkZenityInstalled = shellManager.runCommand(listOf("which", "zenity", "2>/dev/null"))
         val isZenityInstalled = !checkZenityInstalled.isNullOrEmpty()
@@ -41,24 +50,21 @@ class OpenFilePickerUseCase @Inject constructor(
         printLog(TAG, "IsZenityInstalled $isZenityInstalled")
 
         if (isZenityInstalled) {
-            val command = when (pickerType) {
-                PickerType.FILES -> listOf(
-                    "zenity",
-                    "--file-selection",
-                    "--title=Open"
-                )
-
-                PickerType.DIRECTORIES -> listOf("zenity", "--file-selection", "--title=Open", "--directory")
+            val command = buildList {
+                addAll(listOf("zenity", "--file-selection", "--title=Open"))
+                if (pickerType == PickerType.DIRECTORIES) add("--directory")
+                // Unit separator can't appear in a path, unlike zenity's default "|"
+                if (multiple) addAll(listOf("--multiple", "--separator=\u001F"))
             }
 
             val openDirectory = shellManager.runCommand(command)?.replace("\n", "")
 
             if (!openDirectory.isNullOrEmpty())
-                dirToOpen = openDirectory
+                dirsToOpen = openDirectory.split('\u001F').filter { it.isNotEmpty() }
         } else
-            dirToOpen = openJvmDialog(pickerType, "", isLinux = true, isMac = false)
+            dirsToOpen = openJvmDialog(pickerType, "", isLinux = true, isMac = false, multiple = multiple)
 
-        return dirToOpen
+        return dirsToOpen
     }
 
     private fun openJvmDialog(
@@ -66,7 +72,8 @@ class OpenFilePickerUseCase @Inject constructor(
         basePath: String?,
         isLinux: Boolean,
         isMac: Boolean,
-    ): String? {
+        multiple: Boolean,
+    ): List<String> {
         if (!isLinux) {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
         }
@@ -84,27 +91,23 @@ class OpenFilePickerUseCase @Inject constructor(
                 }
             }
 
-            fileChooser.isMultipleMode = false
+            fileChooser.isMultipleMode = multiple
             fileChooser.isVisible = true
 
             System.setProperty("apple.awt.fileDialogForDirectories", "false")
 
-            if (fileChooser.file != null && fileChooser.directory != null) {
-                return fileChooser.directory + fileChooser.file
-            }
-
-            return null
+            return fileChooser.files.map { it.absolutePath }
         } else {
             val fileChooser = if (basePath.isNullOrEmpty())
                 JFileChooser()
             else
                 JFileChooser(basePath)
             fileChooser.fileSelectionMode = pickerType.value
+            fileChooser.isMultiSelectionEnabled = multiple
             fileChooser.showOpenDialog(null)
-            return if (fileChooser.selectedFile != null)
-                fileChooser.selectedFile.absolutePath
-            else
-                null
+            // getSelectedFiles is empty in single selection mode
+            val selected = if (multiple) fileChooser.selectedFiles.toList() else listOfNotNull(fileChooser.selectedFile)
+            return selected.map { it.absolutePath }
         }
     }
 }

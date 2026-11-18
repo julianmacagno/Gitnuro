@@ -18,7 +18,10 @@ private const val TAG = "CustomContextMenu"
  * show a context menu.
  */
 @OptIn(ExperimentalFoundationApi::class)
-class SelectionAwareTextContextMenu(val onIsTextSelected: (AnnotatedString) -> Unit) : TextContextMenu {
+class SelectionAwareTextContextMenu(
+    val onIsTextSelected: (AnnotatedString) -> Unit,
+    private val getExtraItemList: (selectedText: AnnotatedString) -> List<ContextMenuElement> = { emptyList() },
+) : TextContextMenu {
     @Composable
     override fun Area(
         textManager: TextContextMenu.TextManager,
@@ -59,6 +62,12 @@ class SelectionAwareTextContextMenu(val onIsTextSelected: (AnnotatedString) -> U
                 emptyTextManager
             }
 
-        AppPopupMenu().Area(textManagerToUse, state, content)
+        AppPopupMenu(
+            getExtraItemList = {
+                val selectedText = textManagerToUse.selectedText
+
+                if (selectedText.isNotEmpty()) getExtraItemList(selectedText) else emptyList()
+            }
+        ).Area(textManagerToUse, state, content)
     }
 }

@@ -146,6 +146,10 @@ interface TabScopeGitActionsModule {
 
     @Binds
     @TabScope
+    fun bindsDiscardSelectedTextGitAction(action: DiscardSelectedTextGitAction): IDiscardSelectedTextGitAction
+
+    @Binds
+    @TabScope
     fun bindsDoCommitGitAction(action: DoCommitGitAction): IDoCommitGitAction
 
     @Binds
