@@ -15,11 +15,14 @@ object PreferencesKeys {
     val groupBranchesWithRemotesPreference get() = booleanPreferencesKey("group_branches_with_remotes")
     val diffTextViewTypePreference get() = stringPreferencesKey("diff_text_view")
     val showChangesAsTreePreference get() = booleanPreferencesKey("show_changes_as_tree")
+    val showDiffWithLogPreference get() = booleanPreferencesKey("show_diff_with_log")
 
     val dateFormatUseDefaultPreference get() = booleanPreferencesKey("date_format_use_default")
     val dateFormatCustomFormatPreference get() = stringPreferencesKey("date_format_custom_format")
     val dateFormatIs24hPreference get() = booleanPreferencesKey("date_format_is_24h")
     val dateFormatUseRelativePreference get() = booleanPreferencesKey("date_format_use_relative")
+    val showAuthorInLogPreference get() = booleanPreferencesKey("log_show_author")
+    val showAuthorWithEmailInLogPreference get() = booleanPreferencesKey("log_show_author_with_email")
 
     val avatarProviderPreference get() = stringPreferencesKey("avatar_provider")
 

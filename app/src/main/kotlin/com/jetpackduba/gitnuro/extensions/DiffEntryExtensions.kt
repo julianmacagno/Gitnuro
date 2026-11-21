@@ -28,6 +28,7 @@ val StatusType.icon: DrawableResource
             StatusType.MODIFIED -> Res.drawable.edit_filled
             StatusType.REMOVED -> Res.drawable.delete_filled
             StatusType.CONFLICTING -> Res.drawable.warning
+            StatusType.RENAMED -> Res.drawable.refresh
         }
     }
 
@@ -48,7 +49,7 @@ val StatusType.iconColor: Color
     get() {
         return when (this) {
             StatusType.ADDED -> MaterialTheme.colors.addFile
-            StatusType.MODIFIED -> MaterialTheme.colors.modifyFile
+            StatusType.MODIFIED, StatusType.RENAMED -> MaterialTheme.colors.modifyFile
             StatusType.REMOVED -> MaterialTheme.colors.error
             StatusType.CONFLICTING -> MaterialTheme.colors.conflictFile
         }

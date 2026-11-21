@@ -14,11 +14,7 @@ import com.jetpackduba.gitnuro.domain.TabCoroutineScope
 import com.jetpackduba.gitnuro.domain.errors.Either
 import com.jetpackduba.gitnuro.domain.errors.okOrNull
 import com.jetpackduba.gitnuro.domain.exceptions.InvalidMessageException
-import com.jetpackduba.gitnuro.domain.extensions.lowercaseContains
-import com.jetpackduba.gitnuro.domain.extensions.openFileInFolder
-import com.jetpackduba.gitnuro.domain.extensions.removeGitSuffix
-import com.jetpackduba.gitnuro.domain.extensions.toMutableSetAndAdd
-import com.jetpackduba.gitnuro.domain.extensions.toMutableSetAndRemove
+import com.jetpackduba.gitnuro.domain.extensions.*
 import com.jetpackduba.gitnuro.domain.models.*
 import com.jetpackduba.gitnuro.domain.models.ui.SelectedItem
 import com.jetpackduba.gitnuro.domain.repositories.*
@@ -216,6 +212,8 @@ class RepositoryOpenViewModel @Inject constructor(
     val diffSelected: StateFlow<DiffSelected?>
         field = MutableStateFlow<DiffSelected?>(null)
 
+    val showDiffWithLog = appSettings.showDiffWithLog
+
     private val closeableViews = ArrayDeque<CloseableView>()
     private val closeableViewsMutex = Mutex()
 
@@ -383,6 +381,8 @@ class RepositoryOpenViewModel @Inject constructor(
         verticalListState,
         horizontalListState,
         groupBranchesWithRemotes = appSettings.groupBranchesWithRemotes,
+        showAuthor = appSettings.showAuthorInLog,
+        showAuthorWithEmail = appSettings.showAuthorWithEmailInLog,
     )
         .stateIn(LogState(true))
 
@@ -921,7 +921,10 @@ class RepositoryOpenViewModel @Inject constructor(
         removeCloseableView(CloseableView.LOG_SEARCH)
     }
 
-    private fun rebaseInteractive(commit: Commit) = startRebaseInteractiveUseCase(commit)
+    private fun rebaseInteractive(commit: Commit) {
+        diffSelected.value = null
+        startRebaseInteractiveUseCase(commit)
+    }
 
     fun loadMoreLogItems(firstVisibleItemIndex: Int) = viewModelScope.launch {
         val logState = this@RepositoryOpenViewModel.logState.value
@@ -1004,12 +1007,19 @@ class RepositoryOpenViewModel @Inject constructor(
 
     private var diffJob: Job? = null
 
-    val lazyListState = MutableStateFlow(
-        LazyListState(
-            0,
-            0
+    val diffLazyListState =
+        diffSelected.map {
+            LazyListState(
+                0,
+                0
+            )
+        }.mutableStateIn(
+            viewModelScope,
+            initialValue = LazyListState(
+                0,
+                0
+            )
         )
-    )
 
     private suspend fun loadDiff(
         diffType: DiffType,
@@ -1099,7 +1109,8 @@ class RepositoryOpenViewModel @Inject constructor(
 
         if (diffSelected is DiffSelected.CommitedChanges) {
             val newDiffSelected = diffSelected.copy(items = diffSelected.items - selectedToRemove)
-            this.diffSelected.value = newDiffSelected
+
+            updateDiffEntries(newDiffSelected)
         }
     }
 
@@ -1108,7 +1119,17 @@ class RepositoryOpenViewModel @Inject constructor(
 
         if (diffSelected is DiffSelected.UncommittedChanges && diffSelected.entryType == entryType) {
             val newDiffSelected = diffSelected.copy(items = diffSelected.items - selectedToRemove)
-            this.diffSelected.value = newDiffSelected
+            updateDiffEntries(newDiffSelected)
+        }
+    }
+
+    private fun updateDiffEntries(
+        newDiffSelected: DiffSelected
+    ) {
+        diffSelected.value = if (newDiffSelected.entries.isEmpty()) {
+            null
+        } else {
+            newDiffSelected
         }
     }
 

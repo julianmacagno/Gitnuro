@@ -10,12 +10,6 @@ import java.security.Security
 suspend fun main(args: Array<String>) {
     if (Installer.run(args)) return
 
-    if (args.contains("--graalvm")) {
-        val currentDir = System.getProperty("user.dir")
-
-        System.setProperty("java.home", currentDir)
-    }
-
     runCatching {
         Toolkit.getDefaultToolkit().javaClass.getDeclaredField("awtAppClassName").apply {
             isAccessible = true

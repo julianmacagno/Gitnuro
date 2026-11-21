@@ -53,7 +53,6 @@ import com.jetpackduba.gitnuro.ui.context_menu.ContextMenuElement
 import com.jetpackduba.gitnuro.ui.context_menu.SelectionAwareTextContextMenu
 import com.jetpackduba.gitnuro.ui.diff.syntax_highlighter.SyntaxHighlighter
 import com.jetpackduba.gitnuro.ui.diff.syntax_highlighter.getSyntaxHighlighterFromExtension
-import io.ktor.utils.io.core.Closeable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
@@ -64,6 +63,7 @@ import org.jetbrains.compose.animatedimage.loadAnimatedImage
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import java.io.FileInputStream
 import kotlin.math.max
 
@@ -80,6 +80,7 @@ private fun <T> loadOrNull(key: Any, action: suspend () -> T?): T? {
 
 @Composable
 fun DiffPane(
+    modifier: Modifier,
     viewModel: RepositoryOpenViewModel,
     onCloseDiffView: () -> Unit,
 ) {
@@ -102,12 +103,12 @@ fun DiffPane(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .background(MaterialTheme.colors.background)
             .fillMaxSize()
             .focusable(true)
             .focusRequester(focusRequester)
-            .pageKeyScroll { viewModel.lazyListState.value }
+            .pageKeyScroll { viewModel.diffLazyListState.value }
             .onFocusChanged {
                 if (it.isFocused) {
                     viewModel.addCloseableView(CloseableView.DIFF)
@@ -137,7 +138,7 @@ fun DiffPane(
                     onDisplayFullFile = { viewModel.changeDisplayFullFile(it) },
                 )
 
-                val scrollState by viewModel.lazyListState.collectAsState()
+                val scrollState by viewModel.diffLazyListState.collectAsState()
 
                 when (diffResult) {
                     is DiffResult.TextSplit -> HunkSplitTextDiff(
@@ -489,75 +490,79 @@ fun HunkUnifiedTextDiff(
     val displayedLineList = remember(hunks) { hunks.flatMap { hunk -> hunk.lines.map { hunk to it } } }
     val pressedLine = remember(hunks) { arrayOfNulls<Line>(1) }
 
-    CompositionLocalProvider(
-        LocalTextContextMenu provides SelectionAwareTextContextMenu(
-            onIsTextSelected = { selectedText = it },
-            getExtraItemList = { text ->
-                val anchorIndex = displayedLineList.indexOfFirst { it.second == pressedLine[0] }
+    if (hunks.isEmpty()) {
+        NoChanges()
+    } else {
+        CompositionLocalProvider(
+            LocalTextContextMenu provides SelectionAwareTextContextMenu(
+                onIsTextSelected = { selectedText = it },
+                getExtraItemList = { text ->
+                    val anchorIndex = displayedLineList.indexOfFirst { it.second == pressedLine[0] }
 
-                stageSelectedLineItemList(
-                    diffType = diffType,
-                    canUseHunkActions = canUseHunkActions,
-                    selectedText = text,
-                    displayedLineList = displayedLineList,
-                    anchorIndex = anchorIndex,
-                    onApply = { onApplyLineList(diffResult.diffEntry, it) },
-                ) + discardSelectedTextItemList(
-                    diffType = diffType,
-                    canUseHunkActions = canUseHunkActions,
-                    selectedText = text,
-                    displayedLineList = displayedLineList,
-                    anchorIndex = anchorIndex,
-                    onApply = { onDiscardSelectedText(diffResult.diffEntry, it) },
-                )
-            },
-        )
-    ) {
-        SelectionContainer {
-            ScrollableLazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                state = scrollState
-            ) {
-                for (hunk in hunks) {
-                    item {
-                        DisableSelection {
-                            HunkHeader(
-                                header = hunk.header,
-                                diffType = diffType,
-                                canUseHunkActions = canUseHunkActions,
-                                onUnstageHunk = { onUnstageHunk(diffResult.diffEntry, hunk) },
-                                onStageHunk = { onStageHunk(diffResult.diffEntry, hunk) },
-                                onResetHunk = { onResetHunk(diffResult.diffEntry, hunk) },
-                            )
+                    stageSelectedLineItemList(
+                        diffType = diffType,
+                        canUseHunkActions = canUseHunkActions,
+                        selectedText = text,
+                        displayedLineList = displayedLineList,
+                        anchorIndex = anchorIndex,
+                        onApply = { onApplyLineList(diffResult.diffEntry, it) },
+                    ) + discardSelectedTextItemList(
+                        diffType = diffType,
+                        canUseHunkActions = canUseHunkActions,
+                        selectedText = text,
+                        displayedLineList = displayedLineList,
+                        anchorIndex = anchorIndex,
+                        onApply = { onDiscardSelectedText(diffResult.diffEntry, it) },
+                    )
+                },
+            )
+        ) {
+            SelectionContainer {
+                ScrollableLazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    state = scrollState
+                ) {
+                    for (hunk in hunks) {
+                        item {
+                            DisableSelection {
+                                HunkHeader(
+                                    header = hunk.header,
+                                    diffType = diffType,
+                                    canUseHunkActions = canUseHunkActions,
+                                    onUnstageHunk = { onUnstageHunk(diffResult.diffEntry, hunk) },
+                                    onStageHunk = { onStageHunk(diffResult.diffEntry, hunk) },
+                                    onResetHunk = { onResetHunk(diffResult.diffEntry, hunk) },
+                                )
+                            }
                         }
-                    }
 
-                    val oldHighestLineNumber = hunk.lines.maxOf { it.displayOldLineNumber }
-                    val newHighestLineNumber = hunk.lines.maxOf { it.displayNewLineNumber }
-                    val highestLineNumber = max(oldHighestLineNumber, newHighestLineNumber)
-                    val highestLineNumberLength = highestLineNumber.toString().count()
+                        val oldHighestLineNumber = hunk.lines.maxOf { it.displayOldLineNumber }
+                        val newHighestLineNumber = hunk.lines.maxOf { it.displayNewLineNumber }
+                        val highestLineNumber = max(oldHighestLineNumber, newHighestLineNumber)
+                        val highestLineNumberLength = highestLineNumber.toString().count()
 
-                    items(hunk.lines) { line ->
-                        DiffContextMenu(
-                            selectedText = selectedText,
-                            diffType = diffType,
-                            onDiscardLine = { onDiscardLine(diffResult.diffEntry, hunk, line) },
-                            line = line,
-                        ) {
-                            DiffLine(
-                                highestLineNumberLength,
-                                line,
+                        items(hunk.lines) { line ->
+                            DiffContextMenu(
+                                selectedText = selectedText,
                                 diffType = diffType,
-                                onActionTriggered = {
-                                    onUnStageLine(
-                                        diffResult.diffEntry,
-                                        hunk,
-                                        line,
-                                    )
-                                },
-                                modifier = Modifier.onPointerEvent(PointerEventType.Press) { pressedLine[0] = line },
-                            )
+                                onDiscardLine = { onDiscardLine(diffResult.diffEntry, hunk, line) },
+                                line = line,
+                            ) {
+                                DiffLine(
+                                    highestLineNumberLength,
+                                    line,
+                                    diffType = diffType,
+                                    onActionTriggered = {
+                                        onUnStageLine(
+                                            diffResult.diffEntry,
+                                            hunk,
+                                            line,
+                                        )
+                                    },
+                                    modifier = Modifier.onPointerEvent(PointerEventType.Press) { pressedLine[0] = line },
+                                )
+                            }
                         }
                     }
                 }
@@ -599,85 +604,108 @@ fun HunkSplitTextDiff(
 
     var selectedText by remember { mutableStateOf(AnnotatedString("")) }
 
-    CompositionLocalProvider(
-        LocalTextContextMenu provides SelectionAwareTextContextMenu(
-            onIsTextSelected = { selectedText = it },
-            getExtraItemList = { text ->
-                val displayedLineList = if (pressedSide[0] == SelectableSide.OLD) oldLineList else newLineList
+    if (hunks.isEmpty()) {
+        NoChanges()
+    } else {
+        CompositionLocalProvider(
+            LocalTextContextMenu provides SelectionAwareTextContextMenu(
+                onIsTextSelected = { selectedText = it },
+                getExtraItemList = { text ->
+                    val displayedLineList = if (pressedSide[0] == SelectableSide.OLD) oldLineList else newLineList
 
-                val anchorIndex = displayedLineList.indexOfFirst { it.second == pressedLine[0] }
+                    val anchorIndex = displayedLineList.indexOfFirst { it.second == pressedLine[0] }
 
-                stageSelectedLineItemList(
-                    diffType = diffType,
-                    canUseHunkActions = canUseHunkActions,
-                    selectedText = text,
-                    displayedLineList = displayedLineList,
-                    anchorIndex = anchorIndex,
-                    onApply = { onApplyLineList(diffResult.diffEntry, it) },
-                ) + discardSelectedTextItemList(
-                    diffType = diffType,
-                    canUseHunkActions = canUseHunkActions,
-                    selectedText = text,
-                    displayedLineList = displayedLineList,
-                    anchorIndex = anchorIndex,
-                    onApply = { onDiscardSelectedText(diffResult.diffEntry, it) },
-                )
-            },
-        )
-    ) {
-        SelectionContainer {
-            ScrollableLazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                state = scrollState
-            ) {
-                for (splitHunk in hunks) {
-                    item {
-                        DisableSelection {
-                            HunkHeader(
-                                header = splitHunk.sourceHunk.header,
+                    stageSelectedLineItemList(
+                        diffType = diffType,
+                        canUseHunkActions = canUseHunkActions,
+                        selectedText = text,
+                        displayedLineList = displayedLineList,
+                        anchorIndex = anchorIndex,
+                        onApply = { onApplyLineList(diffResult.diffEntry, it) },
+                    ) + discardSelectedTextItemList(
+                        diffType = diffType,
+                        canUseHunkActions = canUseHunkActions,
+                        selectedText = text,
+                        displayedLineList = displayedLineList,
+                        anchorIndex = anchorIndex,
+                        onApply = { onDiscardSelectedText(diffResult.diffEntry, it) },
+                    )
+                },
+            )
+        ) {
+            SelectionContainer {
+                ScrollableLazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    state = scrollState
+                ) {
+                    for (splitHunk in hunks) {
+                        item {
+                            DisableSelection {
+                                HunkHeader(
+                                    header = splitHunk.sourceHunk.header,
+                                    diffType = diffType,
+                                    canUseHunkActions = canUseHunkActions,
+                                    onUnstageHunk = { onUnstageHunk(diffResult.diffEntry, splitHunk.sourceHunk) },
+                                    onStageHunk = { onStageHunk(diffResult.diffEntry, splitHunk.sourceHunk) },
+                                    onResetHunk = { onResetHunk(diffResult.diffEntry, splitHunk.sourceHunk) },
+                                )
+                            }
+                        }
+
+                        val oldHighestLineNumber = splitHunk.sourceHunk.lines.maxOf { it.displayOldLineNumber }
+                        val newHighestLineNumber = splitHunk.sourceHunk.lines.maxOf { it.displayNewLineNumber }
+                        val highestLineNumber = max(oldHighestLineNumber, newHighestLineNumber)
+                        val highestLineNumberLength = highestLineNumber.toString().count()
+
+                        items(splitHunk.lines) { linesPair ->
+                            SplitDiffLine(
+                                highestLineNumberLength = highestLineNumberLength,
+                                oldLine = linesPair.first,
+                                newLine = linesPair.second,
+                                selectableSide = selectableSide,
                                 diffType = diffType,
-                                canUseHunkActions = canUseHunkActions,
-                                onUnstageHunk = { onUnstageHunk(diffResult.diffEntry, splitHunk.sourceHunk) },
-                                onStageHunk = { onStageHunk(diffResult.diffEntry, splitHunk.sourceHunk) },
-                                onResetHunk = { onResetHunk(diffResult.diffEntry, splitHunk.sourceHunk) },
+                                selectedText = selectedText,
+                                onActionTriggered = { line ->
+                                    onUnStageLine(diffResult.diffEntry, splitHunk.sourceHunk, line)
+                                },
+                                onChangeSelectableSide = { newSelectableSide ->
+                                    if (newSelectableSide != selectableSide) {
+                                        selectableSide = newSelectableSide
+                                    }
+                                },
+                                onDiscardLine = { line ->
+                                    onDiscardLine(diffResult.diffEntry, splitHunk.sourceHunk, line)
+                                },
+                                onLinePressed = { line, side ->
+                                    pressedLine[0] = line
+                                    pressedSide[0] = side
+                                },
                             )
                         }
-                    }
-
-                    val oldHighestLineNumber = splitHunk.sourceHunk.lines.maxOf { it.displayOldLineNumber }
-                    val newHighestLineNumber = splitHunk.sourceHunk.lines.maxOf { it.displayNewLineNumber }
-                    val highestLineNumber = max(oldHighestLineNumber, newHighestLineNumber)
-                    val highestLineNumberLength = highestLineNumber.toString().count()
-
-                    items(splitHunk.lines) { linesPair ->
-                        SplitDiffLine(
-                            highestLineNumberLength = highestLineNumberLength,
-                            oldLine = linesPair.first,
-                            newLine = linesPair.second,
-                            selectableSide = selectableSide,
-                            diffType = diffType,
-                            selectedText = selectedText,
-                            onActionTriggered = { line ->
-                                onUnStageLine(diffResult.diffEntry, splitHunk.sourceHunk, line)
-                            },
-                            onChangeSelectableSide = { newSelectableSide ->
-                                if (newSelectableSide != selectableSide) {
-                                    selectableSide = newSelectableSide
-                                }
-                            },
-                            onDiscardLine = { line ->
-                                onDiscardLine(diffResult.diffEntry, splitHunk.sourceHunk, line)
-                            },
-                            onLinePressed = { line, side ->
-                                pressedLine[0] = line
-                                pressedSide[0] = side
-                            },
-                        )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun NoChanges() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            painterResource(Res.drawable.info),
+            contentDescription = null,
+            modifier = Modifier.size(96.dp),
+            tint = MaterialTheme.colors.onBackground,
+        )
+
+        Text(stringResource(Res.string.diff_pane_no_changes))
     }
 }
 
@@ -948,7 +976,12 @@ private fun DiffHeader(
             .padding(start = 16.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val fileName = diffEntry.fileName
+        val fileName = if (diffEntry.changeType == DiffEntry.ChangeType.RENAME) {
+            "${diffEntry.oldPath} → ${diffEntry.newPath}"
+        } else {
+            diffEntry.fileName
+        }
+
         val dirPath: String = diffEntry.parentDirectoryPath
 
         Box(
