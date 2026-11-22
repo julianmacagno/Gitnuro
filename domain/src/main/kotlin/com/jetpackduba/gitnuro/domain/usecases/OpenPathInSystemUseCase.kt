@@ -13,11 +13,6 @@ private const val TAG = "OpenPathInSystemGitAction"
  * A use case for this is opening a repository's folder in the file explorer to view or modify the files
  */
 class OpenPathInSystemUseCase @Inject constructor(
-    /**
-     * We want specifically [ShellManager] implementation and not [com.jetpackduba.gitnuro.domain.IShellManager],
-     * to run commands without any modification
-     * (such as ones done by [com.jetpackduba.gitnuro.domain.FlatpakShellManager], because it has to run in the sandbox)
-     */
     private val shellManager: ShellManager,
 ) {
     operator fun invoke(path: String): Boolean {

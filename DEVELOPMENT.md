@@ -21,7 +21,7 @@ must not use JDK APIs newer than 17; the compiler enforces it with `-Xjdk-releas
 
 You don't need this if you only use the JDK installed by IntelliJ IDEA and build using the IDE.
 
-Check which Java version this project currently uses (`cat build.gradle.kts | grep JavaLanguageVersion`) and install it.
+Check which Java version this project currently uses (`grep JavaLanguageVersion app/build.gradle.kts`) and install it.
 For instance on Debian-based systems, you'd run:
 
 ```bash
@@ -47,9 +47,13 @@ Alternatively on CLI: `./gradlew run` or `./gradlew test`.
 The app checks `latest.json` in this repository (`AppConstants.VERSION_CHECK_URL`) and shows an update notice when its
 `appCode` is greater than `AppConstants.APP_VERSION_CODE`. To release:
 
-1. Bump `AppConstants.APP_VERSION` and `AppConstants.APP_VERSION_CODE` (always increase the code), `projectVersion` and
-   `projectVersionSimplified` in `app/build.gradle.kts`.
+1. Bump `AppConstants.APP_VERSION` and `AppConstants.APP_VERSION_CODE` (always increase the code), and `projectVersion` in
+   `app/build.gradle.kts`.
 2. Update `appVersion` and `appCode` in `latest.json` with the same values.
 3. Merge to `main`, push the tag (`git tag v<version> && git push --tags`) and publish the draft release created by the
    workflow. `latest.json` must reach `main` only after the release is published, otherwise users get a notice with
    nothing to download.
+
+## Keeping up with upstream
+
+See [FORK.md](FORK.md).

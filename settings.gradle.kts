@@ -1,6 +1,3 @@
-import org.gradle.kotlin.dsl.maven
-import org.gradle.kotlin.dsl.mavenCentral
-
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -25,7 +22,6 @@ plugins {
 }
 
 rootProject.name = "Gitnuro"
-include(":ui")
 include(":app")
 include(":domain")
 include(":data")

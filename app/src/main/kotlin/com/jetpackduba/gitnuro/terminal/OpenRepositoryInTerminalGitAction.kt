@@ -10,8 +10,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
-// For flatpak: https://github.com/flathub/com.visualstudio.code#use-host-shell-in-the-integrated-terminal
-
 class OpenRepositoryInTerminalGitAction @Inject constructor(
     private val terminalProvider: ITerminalProvider,
     private val settings: DataStoreGlobalSettingsRepository,

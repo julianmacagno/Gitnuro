@@ -15,11 +15,6 @@ private const val TAG = "SystemDialogs"
  * Shows a picker dialog to select a file or directory
  */
 class OpenFilePickerUseCase @Inject constructor(
-    /**
-     * We want specifically [ShellManager] implementation and not [com.jetpackduba.gitnuro.domain.IShellManager],
-     * to run commands without any modification
-     * (such as ones done by [com.jetpackduba.gitnuro.domain.FlatpakShellManager], because it has to run in the sandbox)
-     */
     private val shellManager: ShellManager,
 ) {
     operator fun invoke(pickerType: PickerType, basePath: String?): String? =

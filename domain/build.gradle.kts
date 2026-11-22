@@ -23,27 +23,10 @@ dependencies {
 
     // TODO This should be removed after refactor is finished
     implementation(libs.jgit.core)
-    implementation(libs.jgit.gpg)
     implementation(libs.jgit.lfs)
 
     implementation(libs.kotlinx.serialization.json)
 
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.platform.launcher)
-
-    testImplementation(libs.mockk)
-
-    implementation(libs.kotlin.logging)
-    implementation(libs.slf4j.api)
-    implementation(libs.slf4j.reload4j)
-
-    implementation(libs.bouncycastle)
-
     implementation(libs.ktor.client)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
-    implementation(libs.ktor.client.logging)
 
 }

@@ -1,9 +1,7 @@
 package com.jetpackduba.gitnuro.di.modules
 
-import com.jetpackduba.gitnuro.AppEnvInfo
 import com.jetpackduba.gitnuro.common.OS
 import com.jetpackduba.gitnuro.common.currentOs
-import com.jetpackduba.gitnuro.domain.FlatpakShellManager
 import com.jetpackduba.gitnuro.domain.IShellManager
 import com.jetpackduba.gitnuro.domain.ShellManager
 import com.jetpackduba.gitnuro.terminal.ITerminalProvider
@@ -17,16 +15,7 @@ import javax.inject.Provider
 @Module
 class ShellModule {
     @Provides
-    fun provideShellManager(
-        appEnvInfo: AppEnvInfo,
-        shellManager: Provider<ShellManager>,
-        flatpakShellManager: Provider<FlatpakShellManager>,
-    ): IShellManager {
-        return if (appEnvInfo.isFlatpak)
-            flatpakShellManager.get()
-        else
-            shellManager.get()
-    }
+    fun provideShellManager(shellManager: ShellManager): IShellManager = shellManager
 
     @Provides
     fun provideTerminalProvider(

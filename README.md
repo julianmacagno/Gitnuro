@@ -33,26 +33,7 @@ Windows (PowerShell):
 irm https://raw.githubusercontent.com/julianmacagno/Gitnuro/main/install.ps1 | iex
 ```
 
-Uninstall: `java -jar GitIA-universal.jar --uninstall` (on Windows also from "Installed apps"). To publish a release, push a tag (`git tag v2.1.1 && git push --tags`) and publish the draft
-created by the workflow; the installers always download the latest published release.
-
-Official builds of the original project (not this fork):
-
-Linux:
-
-- Available as Flatpak [here](https://flathub.org/apps/details/com.jetpackduba.Gitnuro) or by
-  running `flatpak install com.jetpackduba.Gitnuro` if you have Flatpak & Flathub already setup.
-    - If Flathub is not set up, you can add the source with the following
-      command `flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo`.
-
-Windows:
-
-- [Installable & portable version](https://github.com/JetpackDuba/Gitnuro/releases/latest).
-
-MacOS:
-
-- [DMG](https://github.com/JetpackDuba/Gitnuro/releases/latest).
-- Using hombrew: `brew install jetpackduba/apps/gitnuro`
+Uninstall: `java -jar GitIA-universal.jar --uninstall` (on Windows also from "Installed apps").
 
 ## Features
 
@@ -99,23 +80,19 @@ GitIA has support for the following features:
 
 - Create/Apply patches
 - Remove tags from remote.
-- Various log options like showing the author, filtering by current branch o hide remote branches.
+- Various log options like filtering by current branch or hiding remote branches.
 
 </details>
 
 ## Contributing
 
-If you find a bug or you would like to suggest a new feature, feel free to open an issue.
+Bugs and ideas go in this fork's issue tracker. See [this page](DEVELOPMENT.md) for how to set up your development
+environment and [FORK.md](FORK.md) for how this fork differs from the original and how it keeps up with it.
 
-Pull requests are also welcome but please create an issue first if it's a new feature. If you want to work on an
-existing issue, please comment so I'm aware of it and discuss the changes if required.
-See [this page](DEVELOPMENT.md) for how to set up your development environment.
+## AI development
 
-## LLM / AI Policy
-
-This project does not use any AI/LLM generated code or code written with assistance of such tools, and as project 
-creator and maintainer, it is my wish to keep things that way. Any pull request that does not satisfy this requirement
-is going to be rejected.
+This fork is developed with AI. The original project does not accept AI-generated code, so changes from here are not
+sent upstream.
 
 ## FAQ
 
@@ -169,12 +146,6 @@ For the latest stable version, you can use this JSON as an example:
 ```
 
 Colors are in ARGB Hex format.
-
-> Why isn't the Mac version signed?
-
-~~The cost of the Apple Developer Program is quite high with a platform that currently has very few users. I may pay for
-it if it's a very requested feature but not for now.~~
-The current versions are signed but only available for Apple Silicon devices.
 
 > Authentication has failed. What's wrong?
 

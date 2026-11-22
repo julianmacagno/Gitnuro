@@ -95,29 +95,3 @@ class ShellManager @Inject constructor() : IShellManager {
         }
     }
 }
-
-/**
- * Encapsulates [ShellManager] to add the required prefix to commands before running them in a flatpak sandbox environment.
- */
-class FlatpakShellManager @Inject constructor(
-    private val shellManager: ShellManager,
-) : IShellManager {
-    private val flatpakPrefix = listOf("/usr/bin/flatpak-spawn", "--host", "--env=TERM=xterm-256color")
-
-    override fun runCommand(command: List<String>): String? {
-        return shellManager.runCommand(flatpakPrefix + command)
-    }
-
-    override fun runCommandInPath(command: List<String>, path: String) {
-        shellManager.runCommandInPath(flatpakPrefix + command, path)
-    }
-
-    override fun runCommandWithoutResult(command: List<String>): Boolean {
-        return shellManager.runCommandWithoutResult(flatpakPrefix + command)
-    }
-
-    override fun runCommandProcess(command: List<String>, directory: File?): Process {
-        return shellManager.runCommandProcess(flatpakPrefix + command)
-    }
-
-}

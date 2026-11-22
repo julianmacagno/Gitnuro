@@ -99,7 +99,6 @@ sealed interface Screen : NavKey {
 
 class App @Inject constructor(
     private val appSettings: GlobalSettingsService,
-    private val appEnvInfo: AppEnvInfo,
     private val appViewModel: AppViewModel,
     private val tempFilesManager: TempFilesManager,
     private val logsRepository: LogsRepository,
@@ -124,8 +123,6 @@ class App @Inject constructor(
 
 
         val dirToOpen = getDirToOpen(args)
-
-        appEnvInfo.isFlatpak = args.contains("--flatpak")
 
         appViewModel.loadPersistedTabs()
         LfsFactory.setInstance(lfsFactory)
