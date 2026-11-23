@@ -117,17 +117,18 @@ fun Log(
 ) {
     val logStatusState = viewModel.logState.collectAsState()
     val logStatus = logStatusState.value
+    val verticalScrollState by viewModel.verticalListState.collectAsState()
     var graphPadding by remember(viewModel) { mutableStateOf(viewModel.graphPadding) }
 
-    LaunchedEffect(logStatus.verticalScrollState, logStatus.commitList) {
+    LaunchedEffect(verticalScrollState, logStatus.commitList) {
         launch {
             viewModel.focusCommit.collect { commit ->
-                scrollToCommit(logStatus.verticalScrollState, logStatus.commitList, commit.commit)
+                scrollToCommit(verticalScrollState, logStatus.commitList, commit.commit)
             }
         }
         launch {
             viewModel.scrollToUncommittedChanges.collect {
-                scrollToUncommittedChanges(logStatus.verticalScrollState, logStatus.commitList)
+                scrollToUncommittedChanges(verticalScrollState, logStatus.commitList)
             }
         }
     }
@@ -137,13 +138,14 @@ fun Log(
             (selectedItem is SelectedItem.CommitBasedItem && selectedItem !is SelectedItem.CommitItem) ||
             (selectedItem is SelectedItem.CommitItem && selectedItem.scrollToItem)
         ) {
-            scrollToCommit(logStatus.verticalScrollState, logStatus.commitList, selectedItem.commit)
+            scrollToCommit(verticalScrollState, logStatus.commitList, selectedItem.commit)
         }
     }
 
     Box(modifier) {
         LogView(
             logState = logStatus,
+            verticalScrollState = verticalScrollState,
             selectedItem = selectedItem,
             repositoryState = repositoryState,
             graphPadding = graphPadding,
@@ -176,6 +178,7 @@ fun Log(
 @Composable
 private fun LogView(
     logState: LogState,
+    verticalScrollState: LazyListState,
     selectedItem: SelectedItem,
     repositoryState: RepositoryState,
     graphPadding: Float,
@@ -193,7 +196,6 @@ private fun LogView(
     val hasUncommittedChanges = logState.hasUncommittedChanges
     val commitList = logState.commitList
 
-    val verticalScrollState = logState.verticalScrollState
     val horizontalScrollState = logState.horizontalScrollState
     val searchFilterValue = logState.searchFilter
 

@@ -55,6 +55,9 @@ import com.jetpackduba.gitnuro.ui.components.TabsRow
 import com.jetpackduba.gitnuro.ui.components.TabInformation
 import com.jetpackduba.gitnuro.ui.context_menu.AppPopupMenu
 import com.jetpackduba.gitnuro.viewmodels.RepositoryTabViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
@@ -129,6 +132,8 @@ class App @Inject constructor(
 
         if (dirToOpen != null)
             addDirTab(dirToOpen)
+
+        if (BenchScenario.enabled) CoroutineScope(Dispatchers.Default).launch { BenchScenario.run(appViewModel) }
 
         val themeInitial = appSettings.theme.first()
         val customThemeInitial = appSettings.customTheme.firstOrNull()
@@ -210,7 +215,7 @@ class App @Inject constructor(
 
                 LaunchedEffect(currentTab) {
                     snapshotFlow { windowInfo.isWindowFocused }.collect { isFocused ->
-                        if (isFocused) currentTab?.data?.autoFetchAll()
+                        if (isFocused && !BenchScenario.enabled) currentTab?.data?.autoFetchAll()
                     }
                 }
 
@@ -391,6 +396,9 @@ class App @Inject constructor(
 
 @Composable
 private fun TabContent(viewModel: RepositoryTabViewModel) {
+    // Hidden tabs must not keep their UI tree alive through the scroll states they keep
+    DisposableEffect(viewModel) { onDispose { viewModel.onUiDetached() } }
+
     Box(
         modifier = Modifier
             .background(MaterialTheme.colors.background)

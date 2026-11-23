@@ -1,6 +1,5 @@
 package com.jetpackduba.gitnuro.ui.status
 
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.input.TextFieldValue
 import com.jetpackduba.gitnuro.common.flows.combine
@@ -46,8 +45,6 @@ data class StatusState(
     val previousCommitMessage: String? = null,
     val repositoryState: RepositoryState = RepositoryState.SAFE,
     val repositoryPath: String? = null,
-    val stagedLazyListState: LazyListState,
-    val unstagedLazyListState: LazyListState,
 ) {
     val hasPreviousCommits: Boolean = previousCommitMessage != null
 
@@ -85,8 +82,6 @@ fun combineStatusState(
     previousCommitMessage: Flow<String?>,
     repositoryState: Flow<UiDataState<RepositoryState>>,
     repositoryPath: Flow<String?>,
-    stagedLazyListState: LazyListState,
-    unstagedLazyListState: LazyListState,
 ): Flow<StatusState> {
     return combine(
         status,
@@ -181,8 +176,6 @@ fun combineStatusState(
             previousCommitMessage = previousCommitMessage,
             repositoryState = repositoryState,
             repositoryPath = repositoryPath,
-            stagedLazyListState,
-            unstagedLazyListState,
         )
     }
 }
