@@ -51,16 +51,15 @@ idle window takes ~330 MB and 20 open repositories ~1.1 GB. Set `GITIA_JAVA_OPTS
 a Windows shortcut can't read variables, so there the app restarts itself once with it (`Installer.relaunchWithJavaOpts`). The flags are plain HotSpot options valid on every OS; only `MALLOC_ARENA_MAX` and `TrimNativeHeapInterval` (glibc)
 and Skia's software renderer are Linux-only, since macOS and Windows render through Metal/Direct3D.
 
-To measure, `scripts/bench-memory.sh <jar> <out.tsv> [jvm flags]` drives the real UI with `BenchScenario`: it opens the
-repositories of `~/HighImpact/firenze` and `~/HighImpact/soelsac` as two groups (edit the script for other repos),
-scrolls the log, selects commits and opens diffs, rotates the tabs, closes the group and samples RSS/heap at each step.
-It uses a throwaway settings directory and never fetches. It runs on Linux, macOS and Windows (Git Bash); RSS comes from
-`/proc` on Linux, `ps` on macOS and PowerShell on Windows. `BENCH_GROUPS="/a,/b;/c,/d"` picks other repositories. `-Dgitia.bench.limit=5` limits the repos per group for a
-quick run. Add `-XX:NativeMemoryTracking=summary` and run `jcmd <pid> VM.native_memory summary` to see where the
-native memory goes. `-Dgitia.bench.hold=<seconds>` keeps the app idle with the group open, so heap dumps
-(`jcmd <pid> GC.heap_dump -gz=1 heap.hprof.gz`), class histograms (`GC.class_histogram`) and memory maps (`System.map`)
-can be taken then. `python3 scripts/heap-paths.py heap.hprof.gz <class> [cut class...]` shows who keeps the instances of
-a class alive (and what the cut classes retain); `--owners` attributes the heap to the objects that own it.
+To measure, `java [jvm flags] -Dgitia.bench.groups="/a,/b;/c,/d" -Dgitia.bench.out=out.tsv -jar GitIA.jar` drives the
+real UI with `BenchScenario`: it opens each group of repositories (`;` separates groups, `,` repositories), scrolls the
+log, selects commits and opens diffs, rotates the tabs, closes the group, samples RSS/heap at each step and exits. It
+never fetches, but it opens tabs in the app's settings: point `XDG_CONFIG_HOME` (Linux) or `-Duser.home` (macOS,
+Windows) to a throwaway directory. RSS comes from `/proc` on Linux, `ps` on macOS and PowerShell on Windows.
+`-Dgitia.bench.limit=5` limits the repos per group for a quick run. Add `-XX:NativeMemoryTracking=summary` and run
+`jcmd <pid> VM.native_memory summary` to see where the native memory goes. `-Dgitia.bench.hold=<seconds>` keeps the app
+idle with the group open, so heap dumps (`jcmd <pid> GC.heap_dump -gz=1 heap.hprof.gz`), class histograms
+(`GC.class_histogram`) and memory maps (`System.map`) can be taken then.
 
 Keep Compose UI state that outlives its composition free of layout references: a `LazyListState` kept in a ViewModel
 retains the whole UI tree it last measured (and Skia's native text memory). Hidden tabs used to keep ~50 MB of heap that

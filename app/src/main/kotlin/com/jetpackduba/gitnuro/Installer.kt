@@ -22,7 +22,7 @@ object Installer {
     private val javaBin = Path.of(System.getProperty("java.home")) / "bin" / if (isWindows) "javaw.exe" else "java"
 
     /**
-     * Memory-saving JVM flags for the launchers (measured with scripts/bench-memory.sh, see DEVELOPMENT.md):
+     * Memory-saving JVM flags for the launchers (measured with BenchScenario, see DEVELOPMENT.md):
      * a small serial GC instead of G1 (its structures are sized for the max heap), a heap that shrinks, C1 only (C2's
      * compiler arenas cost ~50 MB) and, on Linux, Skia's software renderer (avoids loading Mesa/LLVM, ~55 MB) and a
      * periodic glibc malloc_trim (freed native memory, mostly Skia's, is otherwise never returned to the OS, ~30 MB).

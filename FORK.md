@@ -16,7 +16,7 @@ Read this before every upstream merge and keep it up to date.
 | Java | Bytecode targets Java 17 (`-Xjdk-release=17`), so it runs on Java 17 or newer. Build still uses the JDK 25 toolchain | Bytecode targets Java 21 | `1d0b59df` |
 | Name and distribution | Renamed to GitIA, with self installers (`install.sh`, `install.ps1`) | Gitnuro | `f1d02d9c` |
 | Packaging | Only the universal JAR (`fatJarUniversal`). No jpackage installers, macOS signing/notarization, per-arch `fatJarLinux`, Inno Setup (`gitnuro.iss`) or ProGuard rules | DMG / MSI / per-arch builds | |
-| JVM flags | Launchers start the JVM with serial GC, shrinking heap, C1 only and, on Linux, Skia software renderer and periodic malloc_trim to cut RAM ~65% (`Installer.jvmFlags`, `scripts/bench-memory.sh`) | Default JVM flags | |
+| JVM flags | Launchers start the JVM with serial GC, shrinking heap, C1 only and, on Linux, Skia software renderer and periodic malloc_trim to cut RAM ~65% (`Installer.jvmFlags`, `BenchScenario`) | Default JVM flags | |
 | Flatpak | Not supported: `FlatpakShellManager`, `--flatpak` flag and `AppEnvInfo` removed | Flatpak build | |
 | Modules | No empty `ui` module, no `app/src/main/resources` (it only held GraalVM and Rust leftovers) | Has them | |
 | User-facing texts | Say "GitIA", not "Gitnuro" (also in extracted `strings.xml` entries) | Say "Gitnuro" | |
