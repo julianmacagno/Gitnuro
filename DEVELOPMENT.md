@@ -42,6 +42,23 @@ You can also run these in debug mode and set break points in the code.
 
 Alternatively on CLI: `./gradlew run` or `./gradlew test`.
 
+## Memory
+
+The launchers written by `--install` (and `./gradlew run`) start the JVM with memory-saving flags, listed in
+`Installer.jvmFlags`: serial GC with a shrinking heap, C1 only, and on Linux Skia's software renderer. Without them an
+idle window takes ~330 MB and 20 open repositories ~1.1 GB. Set `GITIA_JAVA_OPTS` to override any of them, e.g.
+`GITIA_JAVA_OPTS="-XX:TieredStopAtLevel=4"` brings C2 back if big diffs feel slow (Linux and macOS launchers; on Windows
+edit the shortcut's arguments). The flags are plain HotSpot options valid on every OS; only `MALLOC_ARENA_MAX` (glibc)
+and Skia's software renderer are Linux-only, since macOS and Windows render through Metal/Direct3D.
+
+To measure, `scripts/bench-memory.sh <jar> <out.tsv> [jvm flags]` drives the real UI with `BenchScenario`: it opens the
+repositories of `~/HighImpact/firenze` and `~/HighImpact/soelsac` as two groups (edit the script for other repos),
+scrolls the log, selects commits and opens diffs, rotates the tabs, closes the group and samples RSS/heap at each step.
+It uses a throwaway settings directory and never fetches. It runs on Linux, macOS and Windows (Git Bash); RSS comes from
+`/proc` on Linux, `ps` on macOS and PowerShell on Windows. `BENCH_GROUPS="/a,/b;/c,/d"` picks other repositories. `-Dgitia.bench.limit=5` limits the repos per group for a
+quick run. Add `-XX:NativeMemoryTracking=summary` and run `jcmd <pid> VM.native_memory summary` to see where the
+native memory goes.
+
 ## Releasing
 
 The app checks `latest.json` in this repository (`AppConstants.VERSION_CHECK_URL`) and shows an update notice when its

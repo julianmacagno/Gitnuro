@@ -653,6 +653,8 @@ class RepositoryOpenViewModel @Inject constructor(
 
 
     override fun onClear() {
+        super.onClear()
+        historyViewModel?.onClear()
     }
 
     private fun refreshRepositoryInfo() {

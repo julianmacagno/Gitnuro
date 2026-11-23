@@ -97,6 +97,7 @@ class AppViewModel @Inject constructor(
             if (tabToBeReplaced != null) {
                 val index = newTabsList.indexOf(tabToBeReplaced)
                 newTabsList[index] = newTab
+                tabToBeReplaced.data.dispose()
             } else {
                 newTabsList.add(newTab)
             }
@@ -108,7 +109,16 @@ class AppViewModel @Inject constructor(
             currentTab.value = newTab
         }
 
+        if (tabToBeReplaced != null) releaseUnusedRepositories()
+
         updatePersistedTabs()
+    }
+
+    /** Closes the cached JGit instances of repositories that no loaded tab shows anymore. */
+    private fun releaseUnusedRepositories() {
+        cleanRepositoriesResourcesUseCase(
+            tabs.value.mapNotNull { if (it.data.isLoaded) it.data.repositoryPath.value else null }
+        )
     }
 
     fun selectTab(tab: TabInformation<RepositoryTabViewModel>) {
@@ -149,15 +159,7 @@ class AppViewModel @Inject constructor(
             tabs.value = tabsList
         }
 
-        val remainingTabs = tabsList.mapNotNull {
-            if (it.data.isLoaded) {
-                it.data.repositoryPath.value
-            } else {
-                null
-            }
-        }
-
-        cleanRepositoriesResourcesUseCase(remainingTabs)
+        releaseUnusedRepositories()
 
         updatePersistedTabs()
         System.gc()

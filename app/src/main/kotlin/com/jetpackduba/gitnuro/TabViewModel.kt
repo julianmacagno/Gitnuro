@@ -9,7 +9,7 @@ import com.jetpackduba.gitnuro.di.TabComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -17,8 +17,9 @@ import kotlinx.coroutines.launch
 open class TabViewModel : ViewModel() {
     val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
+    /** Stops every coroutine of this VM: collectors left running keep the whole tab alive through singleton flows. */
     open fun onClear() {
-        viewModelScope.coroutineContext.cancelChildren()
+        viewModelScope.cancel()
     }
 }
 

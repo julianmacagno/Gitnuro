@@ -20,6 +20,18 @@ object Installer {
     private val home = Path.of(System.getProperty("user.home"))
     private val javaBin = Path.of(System.getProperty("java.home")) / "bin" / if (isWindows) "javaw.exe" else "java"
 
+    /**
+     * Memory-saving JVM flags for the launchers (measured with scripts/bench-memory.sh, see DEVELOPMENT.md):
+     * a small serial GC instead of G1 (its structures are sized for the max heap), a heap that shrinks, C1 only (C2's
+     * compiler arenas cost ~50 MB) and, on Linux, Skia's software renderer (avoids loading Mesa/LLVM, ~55 MB).
+     * ponytail: C1 only is slower in hot loops (big diffs), use GITIA_JAVA_OPTS="-XX:TieredStopAtLevel=4" to undo it.
+     */
+    private val jvmFlags = listOfNotNull(
+        "-XX:+UseSerialGC", "-Xms16m", "-Xmx2g", "-XX:MinHeapFreeRatio=10", "-XX:MaxHeapFreeRatio=25",
+        "-XX:TieredStopAtLevel=1", "-XX:ReservedCodeCacheSize=48m",
+        "-Dskiko.renderApi=SOFTWARE_FAST".takeIf { !isWindows && !isMac },
+    ).joinToString(" ")
+
     fun run(argList: Array<String>): Boolean {
         val install = "--install" in argList
         val uninstall = "--uninstall" in argList
@@ -46,7 +58,11 @@ object Installer {
         copyJar(jar)
         copyResource("icon.png", icon)
 
-        writeFile(launcher, "#!/bin/sh\nexec \"$javaBin\" -jar \"$jar\" \"\$@\"\n", "rwxr-xr-x")
+        writeFile(
+            launcher,
+            "#!/bin/sh\nexport MALLOC_ARENA_MAX=2\nexec \"$javaBin\" $jvmFlags \$GITIA_JAVA_OPTS -jar \"$jar\" \"\$@\"\n",
+            "rwxr-xr-x",
+        )
         writeFile(
             desktopFile,
             """
@@ -82,7 +98,7 @@ object Installer {
             executable,
             "#!/bin/sh\n" +
                 "DIR=\"\$(cd \"\$(dirname \"\$0\")/../Resources\" && pwd)\"\n" +
-                "exec \"$javaBin\" -Dapple.awt.application.appearance=system -Xdock:name=GitIA " +
+                "exec \"$javaBin\" $jvmFlags \$GITIA_JAVA_OPTS -Dapple.awt.application.appearance=system -Xdock:name=GitIA " +
                 "-jar \"\$DIR/gitia.jar\" \"\$@\"\n",
             "rwxr-xr-x",
         )
@@ -125,7 +141,7 @@ object Installer {
             "powershell", "-NoProfile", "-Command",
             "\$s = (New-Object -ComObject WScript.Shell).CreateShortcut('${windowsShortcut()}'); " +
                 "\$s.TargetPath = '$javaBin'; " +
-                "\$s.Arguments = '-jar \"$jar\"'; " +
+                "\$s.Arguments = '$jvmFlags -jar \"$jar\"'; " +
                 "\$s.IconLocation = '$icon'; " +
                 "\$s.Save()",
         )

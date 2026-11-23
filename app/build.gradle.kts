@@ -101,6 +101,9 @@ tasks.register<JavaExec>("run") {
     group = "application"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.jetpackduba.gitnuro.MainKt")
+    // Same memory flags as the installed launchers (Installer.jvmFlags)
+    jvmArgs("-XX:+UseSerialGC", "-Xms16m", "-Xmx2g", "-XX:MinHeapFreeRatio=10", "-XX:MaxHeapFreeRatio=25", "-XX:TieredStopAtLevel=1")
+    environment("MALLOC_ARENA_MAX", "2")
 }
 
 // Compose's native (Skia) runtimes of every supported platform, only used by fatJarUniversal

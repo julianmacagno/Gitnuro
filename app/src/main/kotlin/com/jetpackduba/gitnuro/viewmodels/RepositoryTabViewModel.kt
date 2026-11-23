@@ -257,6 +257,10 @@ class RepositoryTabViewModel @AssistedInject constructor(
     }
 
     override fun dispose() {
+        viewModelsMap.values.toList().forEach { it.onClear() }
+        viewModelsMap.clear()
+        savedStates.clear()
+        onClear()
         fileChangesWatcher.close()
         tabScope.cancel()
         repositoryDataRepository.clearAll()
