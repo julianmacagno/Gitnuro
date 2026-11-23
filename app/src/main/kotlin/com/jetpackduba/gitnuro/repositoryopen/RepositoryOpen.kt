@@ -61,7 +61,7 @@ fun RepositoryOpenPage(
             .focusable(true)
             .then(
                 if (isDiffShown) Modifier
-                else Modifier.pageKeyScroll { repositoryOpenViewModel.logState.value.verticalScrollState }
+                else Modifier.pageKeyScroll { repositoryOpenViewModel.verticalListState.value }
             )
             .onPreviewKeyEvent {
                 when {
@@ -256,6 +256,7 @@ fun MainContentView(
     val scope = rememberCoroutineScope()
 
     val statusState by viewModel.statusState.collectAsState()
+    val statusListStates by viewModel.statusListStates.collectAsState()
 
     val showDiffWithLog by viewModel.showDiffWithLog.collectAsState(false)
 
@@ -363,6 +364,7 @@ fun MainContentView(
                 } else if (rebaseInteractiveState !is RebaseInteractiveState.AwaitingInteraction) {
                     StatusPane(
                         statusState = statusState,
+                        listStates = statusListStates,
                         onAction = { viewModel.onAction(it) },
                         onBlameFile = { viewModel.blameFile(it) },
                         onHistoryFile = { viewModel.fileHistory(it) }

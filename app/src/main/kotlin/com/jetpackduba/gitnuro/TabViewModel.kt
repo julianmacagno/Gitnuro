@@ -21,6 +21,9 @@ open class TabViewModel : ViewModel() {
     open fun onClear() {
         viewModelScope.cancel()
     }
+
+    /** The tab's UI left the composition (another tab was selected): replace kept LazyListStates with [detachedCopy]. */
+    open fun onUiDetached() {}
 }
 
 context(viewModel: TabViewModel)

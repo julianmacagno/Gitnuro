@@ -103,6 +103,7 @@ tasks.register<JavaExec>("run") {
     mainClass.set("com.jetpackduba.gitnuro.MainKt")
     // Same memory flags as the installed launchers (Installer.jvmFlags)
     jvmArgs("-XX:+UseSerialGC", "-Xms16m", "-Xmx2g", "-XX:MinHeapFreeRatio=10", "-XX:MaxHeapFreeRatio=25", "-XX:TieredStopAtLevel=1")
+    if (System.getProperty("os.name").lowercase().contains("linux")) jvmArgs("-XX:TrimNativeHeapInterval=30000")
     environment("MALLOC_ARENA_MAX", "2")
 }
 

@@ -38,6 +38,7 @@ import com.jetpackduba.gitnuro.viewmodels.sidepanel.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
+import com.jetpackduba.gitnuro.compose.detachedCopy
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -362,7 +363,10 @@ class RepositoryOpenViewModel @Inject constructor(
             getSummaryFromStatusUseCase(status)
         }
 
-    private val verticalListState = MutableStateFlow(LazyListState(0, 0))
+    // Scroll states live outside LogState/StatusState: a stateIn initial value is never released, and a LazyListState
+    // retains the UI it last measured, so they must stay replaceable (see onUiDetached)
+    val verticalListState: StateFlow<LazyListState>
+        field = MutableStateFlow(LazyListState(0, 0))
     private val horizontalListState = MutableStateFlow(ScrollState(0))
 
 
@@ -378,7 +382,6 @@ class RepositoryOpenViewModel @Inject constructor(
         stashes = stashesHashes,
         statusSummary,
         logSearchFilterResults,
-        verticalListState,
         horizontalListState,
         groupBranchesWithRemotes = appSettings.groupBranchesWithRemotes,
         showAuthor = appSettings.showAuthorInLog,
@@ -419,6 +422,7 @@ class RepositoryOpenViewModel @Inject constructor(
     val commitChangesState = commitChangesViewModelExtender.commitChangesState
 
     val statusState = statusViewModelExtender.statusState
+    val statusListStates = statusViewModelExtender.listStates
 
     init {
         closeViewFlow.collectLatestInViewModel {
@@ -655,6 +659,12 @@ class RepositoryOpenViewModel @Inject constructor(
     override fun onClear() {
         super.onClear()
         historyViewModel?.onClear()
+    }
+
+    override fun onUiDetached() {
+        verticalListState.update { it.detachedCopy() }
+        diffLazyListState.update { it.detachedCopy() }
+        statusViewModelExtender.onUiDetached()
     }
 
     private fun refreshRepositoryInfo() {

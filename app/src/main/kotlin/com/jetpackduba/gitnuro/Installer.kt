@@ -1,5 +1,6 @@
 package com.jetpackduba.gitnuro
 
+import java.lang.management.ManagementFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -23,14 +24,37 @@ object Installer {
     /**
      * Memory-saving JVM flags for the launchers (measured with scripts/bench-memory.sh, see DEVELOPMENT.md):
      * a small serial GC instead of G1 (its structures are sized for the max heap), a heap that shrinks, C1 only (C2's
-     * compiler arenas cost ~50 MB) and, on Linux, Skia's software renderer (avoids loading Mesa/LLVM, ~55 MB).
+     * compiler arenas cost ~50 MB) and, on Linux, Skia's software renderer (avoids loading Mesa/LLVM, ~55 MB) and a
+     * periodic glibc malloc_trim (freed native memory, mostly Skia's, is otherwise never returned to the OS, ~30 MB).
      * ponytail: C1 only is slower in hot loops (big diffs), use GITIA_JAVA_OPTS="-XX:TieredStopAtLevel=4" to undo it.
      */
+    private val isLinux = !isWindows && !isMac
     private val jvmFlags = listOfNotNull(
         "-XX:+UseSerialGC", "-Xms16m", "-Xmx2g", "-XX:MinHeapFreeRatio=10", "-XX:MaxHeapFreeRatio=25",
         "-XX:TieredStopAtLevel=1", "-XX:ReservedCodeCacheSize=48m",
-        "-Dskiko.renderApi=SOFTWARE_FAST".takeIf { !isWindows && !isMac },
+        "-Dskiko.renderApi=SOFTWARE_FAST".takeIf { isLinux },
+        "-XX:TrimNativeHeapInterval=30000".takeIf { isLinux },
     ).joinToString(" ")
+
+    /**
+     * The Linux and macOS launchers append GITIA_JAVA_OPTS to [jvmFlags]; a Windows shortcut can't read environment
+     * variables, so there the app starts itself once more with them. Returns true when this process must exit.
+     * ponytail: costs a second JVM startup, only when the variable is set.
+     */
+    fun relaunchWithJavaOpts(args: Array<String>): Boolean {
+        val opts = System.getenv("GITIA_JAVA_OPTS")?.trim().orEmpty()
+        if (!isWindows || opts.isEmpty() || System.getProperty("gitia.javaOpts") != null) return false
+
+        val java = ProcessHandle.current().info().command().orElse(null) ?: return false
+        val jar = runCatching { currentJar() }.getOrNull() ?: return false // not started from the jar (e.g. gradle)
+
+        ProcessBuilder(
+            listOf(java) + ManagementFactory.getRuntimeMXBean().inputArguments + opts.split(Regex("\\s+")) +
+                "-Dgitia.javaOpts=applied" + "-jar" + jar.toString() + args
+        ).inheritIO().start()
+
+        return true
+    }
 
     fun run(argList: Array<String>): Boolean {
         val install = "--install" in argList

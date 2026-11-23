@@ -45,10 +45,10 @@ Alternatively on CLI: `./gradlew run` or `./gradlew test`.
 ## Memory
 
 The launchers written by `--install` (and `./gradlew run`) start the JVM with memory-saving flags, listed in
-`Installer.jvmFlags`: serial GC with a shrinking heap, C1 only, and on Linux Skia's software renderer. Without them an
+`Installer.jvmFlags`: serial GC with a shrinking heap, C1 only, and on Linux Skia's software renderer and a periodic `malloc_trim`. Without them an
 idle window takes ~330 MB and 20 open repositories ~1.1 GB. Set `GITIA_JAVA_OPTS` to override any of them, e.g.
-`GITIA_JAVA_OPTS="-XX:TieredStopAtLevel=4"` brings C2 back if big diffs feel slow (Linux and macOS launchers; on Windows
-edit the shortcut's arguments). The flags are plain HotSpot options valid on every OS; only `MALLOC_ARENA_MAX` (glibc)
+`GITIA_JAVA_OPTS="-XX:TieredStopAtLevel=4"` brings C2 back if big diffs feel slow. The Linux and macOS launchers append it;
+a Windows shortcut can't read variables, so there the app restarts itself once with it (`Installer.relaunchWithJavaOpts`). The flags are plain HotSpot options valid on every OS; only `MALLOC_ARENA_MAX` and `TrimNativeHeapInterval` (glibc)
 and Skia's software renderer are Linux-only, since macOS and Windows render through Metal/Direct3D.
 
 To measure, `scripts/bench-memory.sh <jar> <out.tsv> [jvm flags]` drives the real UI with `BenchScenario`: it opens the
@@ -57,7 +57,16 @@ scrolls the log, selects commits and opens diffs, rotates the tabs, closes the g
 It uses a throwaway settings directory and never fetches. It runs on Linux, macOS and Windows (Git Bash); RSS comes from
 `/proc` on Linux, `ps` on macOS and PowerShell on Windows. `BENCH_GROUPS="/a,/b;/c,/d"` picks other repositories. `-Dgitia.bench.limit=5` limits the repos per group for a
 quick run. Add `-XX:NativeMemoryTracking=summary` and run `jcmd <pid> VM.native_memory summary` to see where the
-native memory goes.
+native memory goes. `-Dgitia.bench.hold=<seconds>` keeps the app idle with the group open, so heap dumps
+(`jcmd <pid> GC.heap_dump -gz=1 heap.hprof.gz`), class histograms (`GC.class_histogram`) and memory maps (`System.map`)
+can be taken then. `python3 scripts/heap-paths.py heap.hprof.gz <class> [cut class...]` shows who keeps the instances of
+a class alive (and what the cut classes retain); `--owners` attributes the heap to the objects that own it.
+
+Keep Compose UI state that outlives its composition free of layout references: a `LazyListState` kept in a ViewModel
+retains the whole UI tree it last measured (and Skia's native text memory). Hidden tabs used to keep ~50 MB of heap that
+way, so the ViewModels expose their list states as separate flows and swap them for a copy at the same position when
+the tab is hidden (`TabViewModel.onUiDetached`, `detachedCopy`). Never put one inside a `stateIn` initial value: it is
+never released.
 
 ## Releasing
 

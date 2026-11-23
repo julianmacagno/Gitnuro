@@ -60,13 +60,13 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun StatusPane(
     statusState: StatusState,
+    listStates: Pair<LazyListState, LazyListState>,
     onAction: (StatusAction) -> Unit,
     onBlameFile: (String) -> Unit,
     onHistoryFile: (String) -> Unit,
 ) {
     val swapUncommittedChanges = statusState.swapUncommittedChanges
-    val stagedListState = statusState.stagedLazyListState
-    val unstagedListState = statusState.unstagedLazyListState
+    val (stagedListState, unstagedListState) = listStates
 
     val commitMessage = statusState.commitMessage
 

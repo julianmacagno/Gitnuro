@@ -1,7 +1,6 @@
 package com.jetpackduba.gitnuro.repositoryopen
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Immutable
 import com.jetpackduba.gitnuro.common.flows.combine
 import com.jetpackduba.gitnuro.domain.models.Branch
@@ -23,7 +22,6 @@ data class LogState(
     val stashes: HashSet<String> = HashSet(),
     val statusSummary: StatusSummary = StatusSummary(0, 0, 0, 0),
     val searchFilter: LogSearch = LogSearch.NotSearching,
-    val verticalScrollState: LazyListState = LazyListState(),
     val horizontalScrollState: ScrollState = ScrollState(0),
     val groupBranchesWithRemotes: Boolean = true,
     val showAuthor: Boolean = false,
@@ -39,7 +37,6 @@ fun combineLogState(
     stashes: Flow<HashSet<String>>,
     statusSummary: Flow<StatusSummary>,
     logSearchFilterResults: Flow<LogSearch>,
-    verticalListState: Flow<LazyListState>,
     horizontalListState: Flow<ScrollState>,
     groupBranchesWithRemotes: Flow<Boolean>,
     showAuthor: Flow<Boolean>,
@@ -54,7 +51,6 @@ fun combineLogState(
         stashes,
         statusSummary,
         logSearchFilterResults,
-        verticalListState,
         horizontalListState,
         groupBranchesWithRemotes,
         showAuthor,
@@ -67,7 +63,6 @@ fun combineLogState(
         stashes,
         statusSummary,
         logSearchFilterResults,
-        verticalListState,
         horizontalListState,
         groupBranchesWithRemotes,
         showAuthor,
@@ -82,7 +77,6 @@ fun combineLogState(
             stashes,
             statusSummary,
             logSearchFilterResults,
-            verticalListState,
             horizontalListState,
             groupBranchesWithRemotes = groupBranchesWithRemotes,
             showAuthor = showAuthor,

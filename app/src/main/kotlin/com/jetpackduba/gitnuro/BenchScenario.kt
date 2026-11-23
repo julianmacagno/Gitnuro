@@ -42,6 +42,8 @@ object BenchScenario {
                 val name = "g$index"
                 group.forEach { repo -> openAndUse(appViewModel, repo, name) }
                 sample("$name-all-open")
+                // -Dgitia.bench.hold=<seconds>: stay idle with the group open, to take heap/native dumps from outside
+                System.getProperty("gitia.bench.hold")?.toLong()?.let { System.err.println("BENCH HOLD $it s"); delay(it * 1000) }
 
                 repeat(2) { round ->
                     appViewModel.tabs.value.forEach { tab ->
@@ -77,7 +79,7 @@ object BenchScenario {
             var last = -1
             while (vm.logState.value.commitList.size != last) {
                 last = vm.logState.value.commitList.size
-                val state: LazyListState = vm.logState.value.verticalScrollState
+                val state: LazyListState = vm.verticalListState.value
                 withContext(Dispatchers.Main) { state.scrollToItem((last - 1).coerceAtLeast(0)) }
                 delay(1500)
             }

@@ -24,6 +24,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import com.jetpackduba.gitnuro.compose.detachedCopy
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
@@ -80,8 +81,9 @@ class StatusViewModelExtender @AssistedInject constructor(
         ): StatusViewModelExtender
     }
 
-    private val stagedLazyListState = LazyListState()
-    private val unstagedLazyListState = LazyListState()
+    /** Staged to unstaged, replaced by [onUiDetached]. Kept out of [statusState]: see RepositoryOpenViewModel.verticalListState */
+    val listStates: StateFlow<Pair<LazyListState, LazyListState>>
+        field = MutableStateFlow(LazyListState() to LazyListState())
 
     val showSearchUnstaged: StateFlow<Boolean>
         field = MutableStateFlow(false)
@@ -212,15 +214,12 @@ class StatusViewModelExtender @AssistedInject constructor(
         previousCommitMessage,
         repositoryDataRepository.repositoryState.toUiDataState(),
         repositoryPath,
-        stagedLazyListState,
-        unstagedLazyListState
     )
-        .stateIn(
-            StatusState(
-                stagedLazyListState = stagedLazyListState,
-                unstagedLazyListState = unstagedLazyListState,
-            )
-        )
+        .stateIn(StatusState())
+
+    fun onUiDetached() {
+        listStates.update { (staged, unstaged) -> staged.detachedCopy() to unstaged.detachedCopy() }
+    }
 
     init {
         showSearchStaged.collectLatestInCoroutineScope {

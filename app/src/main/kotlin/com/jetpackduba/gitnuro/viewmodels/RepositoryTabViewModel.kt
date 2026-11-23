@@ -1,11 +1,13 @@
 package com.jetpackduba.gitnuro.viewmodels
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.jetpackduba.gitnuro.Screen
 import com.jetpackduba.gitnuro.TabViewModel
 import com.jetpackduba.gitnuro.common.printLog
 import com.jetpackduba.gitnuro.common.systemSeparator
+import com.jetpackduba.gitnuro.compose.detachedCopy
 import com.jetpackduba.gitnuro.di.TabComponent
 import com.jetpackduba.gitnuro.domain.MAX_COMPLETED_TASKS_KEPT
 import com.jetpackduba.gitnuro.domain.TabCoroutineScope
@@ -254,6 +256,11 @@ class RepositoryTabViewModel @AssistedInject constructor(
 
     fun lfsCredentialsAccepted(user: String, password: String) {
         credentialsStateManager.lfsCredentialsAccepted(user, password)
+    }
+
+    override fun onUiDetached() {
+        savedStates.replaceAll { _, (inputs, value) -> Pair(inputs, (value as? LazyListState)?.detachedCopy() ?: value) }
+        viewModelsMap.values.forEach { it.onUiDetached() }
     }
 
     override fun dispose() {

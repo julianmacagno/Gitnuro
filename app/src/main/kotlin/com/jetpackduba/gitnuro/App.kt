@@ -396,6 +396,9 @@ class App @Inject constructor(
 
 @Composable
 private fun TabContent(viewModel: RepositoryTabViewModel) {
+    // Hidden tabs must not keep their UI tree alive through the scroll states they keep
+    DisposableEffect(viewModel) { onDispose { viewModel.onUiDetached() } }
+
     Box(
         modifier = Modifier
             .background(MaterialTheme.colors.background)
