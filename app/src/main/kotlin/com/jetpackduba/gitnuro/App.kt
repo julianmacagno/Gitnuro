@@ -212,6 +212,7 @@ class App @Inject constructor(
                 icon = painterResource(Res.drawable.logo),
             ) {
                 val windowInfo = LocalWindowInfo.current
+                if (BenchScenario.enabled) BenchScenario.uiScope = rememberCoroutineScope()
 
                 LaunchedEffect(currentTab) {
                     snapshotFlow { windowInfo.isWindowFocused }.collect { isFocused ->

@@ -10,6 +10,7 @@ import java.security.Security
 suspend fun main(args: Array<String>) {
     if (Installer.run(args)) return
     if (Installer.relaunchWithJavaOpts(args)) return
+    BenchScenario.prepare(args)
 
     runCatching {
         Toolkit.getDefaultToolkit().javaClass.getDeclaredField("awtAppClassName").apply {

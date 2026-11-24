@@ -38,6 +38,7 @@ class DataStoreFilesProvider @Inject constructor() {
     }
 
     private fun getPreferencesDir(): String {
+        System.getProperty("gitia.configDir")?.let { return it } // throwaway settings of BenchScenario
         val home = System.getProperty("user.home").orEmpty()
 
         return when (currentOs) {
